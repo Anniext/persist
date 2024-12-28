@@ -1,8 +1,8 @@
 package main
 
 import (
-	tpl "anniext.natapp4.cc/xt/persist/template"
-	"anniext.natapp4.cc/xt/persist/util"
+	tpl "anniext.asia/xt/persist/template"
+	"anniext.asia/xt/persist/util"
 	"bytes"
 	"flag"
 	"fmt"
