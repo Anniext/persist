@@ -213,7 +213,7 @@ func main() {
 	if *srcDir == "" {
 		*srcDir = dir
 	} else {
-		persistPkgPath = *srcDir
+		persistPkgPath = "anniext.asia/xt/persist/" + *srcDir
 		persistPkgName = persistPkgPath[strings.LastIndex(persistPkgPath, "/")+1:]
 		if !path.IsAbs(*srcDir) {
 			*srcDir = path.Join(dir, *srcDir)

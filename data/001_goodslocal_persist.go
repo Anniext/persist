@@ -76,139 +76,127 @@ import (
 // 2: 优化对象序列化大小，添加tag 一定程度兼容新旧结构, 支持更多的类型优化
 
 const (
-	EItemLocalManagerStateIdle   = 0 // 初始化
-	EItemLocalManagerStateNormal = 1 // 正常运行
-	EItemLocalManagerStatePanic  = 2 // 非法停止
+	EGoodsLocalManagerStateIdle   = 0 // 初始化
+	EGoodsLocalManagerStateNormal = 1 // 正常运行
+	EGoodsLocalManagerStatePanic  = 2 // 非法停止
 
-	EItemLocalTableStateDisk      = 0 // 导出
-	EItemLocalTableStateLoading   = 1 // 全导入开始
-	EItemLocalTableStateMemory    = 2 // 全导入完成
-	EItemLocalTableStateUnloading = 3 // 正在全导出
+	EGoodsLocalTableStateDisk      = 0 // 导出
+	EGoodsLocalTableStateLoading   = 1 // 全导入开始
+	EGoodsLocalTableStateMemory    = 2 // 全导入完成
+	EGoodsLocalTableStateUnloading = 3 // 正在全导出
 
-	EItemLocalLoadStateDisk             = 0 // 不存在 or 导出
-	EItemLocalLoadStateLoading          = 1 // 导入开始
-	EItemLocalLoadStateMemory           = 2 // 导入完成
-	EItemLocalLoadStatePrepareUnloading = 3 // 准备导出
-	EItemLocalLoadStateUnloading        = 4 // 正在导出
+	EGoodsLocalLoadStateDisk             = 0 // 不存在 or 导出
+	EGoodsLocalLoadStateLoading          = 1 // 导入开始
+	EGoodsLocalLoadStateMemory           = 2 // 导入完成
+	EGoodsLocalLoadStatePrepareUnloading = 3 // 准备导出
+	EGoodsLocalLoadStateUnloading        = 4 // 正在导出
 
-	EItemLocalOpInsert = 1 // 新建
-	EItemLocalOpUpdate = 2 // 修改
-	EItemLocalOpDelete = 3 // 删除
-	EItemLocalOpUnload = 4 // 导出
+	EGoodsLocalOpInsert = 1 // 新建
+	EGoodsLocalOpUpdate = 2 // 修改
+	EGoodsLocalOpDelete = 3 // 删除
+	EGoodsLocalOpUnload = 4 // 导出
 
-	EItemLocalCollectStateNormal    = 0 // 正常
-	EItemLocalCollectStateSaveSync  = 1 // 开始退出, 清理同步队列
-	EItemLocalCollectStateSaveCache = 2 // 开始退出,清理缓存队列
-	EItemLocalCollectStateSaveDone  = 3 // 写回完成
+	EGoodsLocalCollectStateNormal    = 0 // 正常
+	EGoodsLocalCollectStateSaveSync  = 1 // 开始退出, 清理同步队列
+	EGoodsLocalCollectStateSaveCache = 2 // 开始退出,清理缓存队列
+	EGoodsLocalCollectStateSaveDone  = 3 // 写回完成
 
 )
 
-type ItemLocal = protocol.ItemLocal
+type GoodsLocal = protocol.GoodsLocal
 
-// ItemLocalDeepCopy persist对象必须支持并发访问, 不实现该接口默认深拷贝对象 (1 建议实现该接口,反射效率较低  2 map 建议生成syncmap  3 slice 建议深拷贝)
-type ItemLocalDeepCopy interface {
-	CopyTo(t *protocol.ItemLocal)
+// GoodsLocalDeepCopy persist对象必须支持并发访问, 不实现该接口默认深拷贝对象 (1 建议实现该接口,反射效率较低  2 map 建议生成syncmap  3 slice 建议深拷贝)
+type GoodsLocalDeepCopy interface {
+	CopyTo(t *protocol.GoodsLocal)
 }
 
-// ItemLocalOverload 未落地数据超过阈值时调用
-type ItemLocalOverload interface {
+// GoodsLocalOverload 未落地数据超过阈值时调用
+type GoodsLocalOverload interface {
 	Overload(queueSize int, lastWriteBackTime time.Duration)
 }
 
-type ItemLocalUidItemId struct {
-	Uid    int32
-	ItemId int32
-}
-
-type ItemLocalUid struct {
+type GoodsLocalUid struct {
 	Uid int32
 }
 
-type ItemLocalKeyTypeHashUidItemId = ItemLocalUidItemId
+type GoodsLocalKeyTypeHashUid = GoodsLocalUid
 
-type ItemLocalKeyTypeHashUid = ItemLocalUid
+// GoodsLocalManager 索引类型定义
 
-// ItemLocalManager 索引类型定义
+// only define type GoodsLocalHashUidMark map[GoodsLocalKeyTypeHashUid]bool
 
-// only define type ItemLocalHashUidItemIdMark map[ItemLocalKeyTypeHashUidItemId]bool
+// only define type GoodsLocalHashUid map[GoodsLocalKeyTypeHashUid]*protocol.GoodsLocal
 
-// only define type ItemLocalHashUidItemId map[ItemLocalKeyTypeHashUidItemId]*protocol.ItemLocal
-
-// only define type ItemLocalHashUid map[ItemLocalKeyTypeHashUid]map[*protocol.ItemLocal]bool
-
-// ItemLocalFieldIndex 所有列index枚举
-// ItemLocalBitSet begin
+// GoodsLocalFieldIndex 所有列index枚举
+// GoodsLocalBitSet begin
 // 读ast计算FieldLength 生成所有字段常量 0~length
-type ItemLocalFieldIndex = uint
+type GoodsLocalFieldIndex = uint
 
-const EItemLocalFieldIndexZero ItemLocalFieldIndex = 0
+const EGoodsLocalFieldIndexZero GoodsLocalFieldIndex = 0
 
-const EItemLocalFieldIndexUid ItemLocalFieldIndex = 0
+const EGoodsLocalFieldIndexUid GoodsLocalFieldIndex = 0
 
-const EItemLocalFieldIndexItemId ItemLocalFieldIndex = 1
+const EGoodsLocalFieldIndexTime GoodsLocalFieldIndex = 1
 
-const EItemLocalFieldIndexItemNum ItemLocalFieldIndex = 2
+const EGoodsLocalFieldIndexName GoodsLocalFieldIndex = 2
 
-const EItemLocalFieldIndexItemTime ItemLocalFieldIndex = 3
+const EGoodsLocalFiledIndexLength GoodsLocalFieldIndex = 3
 
-const EItemLocalFiledIndexLength ItemLocalFieldIndex = 4
-
-var ItemLocalStructFiledMap = [EItemLocalFiledIndexLength]string{
+var GoodsLocalStructFiledMap = [EGoodsLocalFiledIndexLength]string{
 	"Uid",
-	"ItemId",
-	"ItemNum",
-	"ItemTime",
+	"Time",
+	"Name",
 }
 
-var ItemLocalDBFiledMap [EItemLocalFiledIndexLength]string
+var GoodsLocalDBFiledMap [EGoodsLocalFiledIndexLength]string
 
-// EItemLocalWordSize the EItemLocalWordSize of a bit set
-const EItemLocalWordSize = ItemLocalFieldIndex(64)
+// EGoodsLocalWordSize the EGoodsLocalWordSize of a bit set
+const EGoodsLocalWordSize = GoodsLocalFieldIndex(64)
 
-// EItemLocalLog2WordSize is lg(EItemLocalWordSize)
-const EItemLocalLog2WordSize = ItemLocalFieldIndex(6)
+// EGoodsLocalLog2WordSize is lg(EGoodsLocalWordSize)
+const EGoodsLocalLog2WordSize = GoodsLocalFieldIndex(6)
 
-// EItemLocalAllBits has every bit set
-const EItemLocalAllBits uint64 = 0xffffffffffffffff
+// EGoodsLocalAllBits has every bit set
+const EGoodsLocalAllBits uint64 = 0xffffffffffffffff
 
-type ItemLocalBitSet struct {
-	set [(EItemLocalFiledIndexLength >> EItemLocalLog2WordSize) + 1]uint64
+type GoodsLocalBitSet struct {
+	set [(EGoodsLocalFiledIndexLength >> EGoodsLocalLog2WordSize) + 1]uint64
 }
 
 // Get whether bit i is set.
-func (b *ItemLocalBitSet) Get(i ItemLocalFieldIndex) bool {
-	if i >= EItemLocalFiledIndexLength {
+func (b *GoodsLocalBitSet) Get(i GoodsLocalFieldIndex) bool {
+	if i >= EGoodsLocalFiledIndexLength {
 		return false
 	}
-	return b.set[i>>EItemLocalLog2WordSize]&(1<<(i&(EItemLocalWordSize-1))) != 0
+	return b.set[i>>EGoodsLocalLog2WordSize]&(1<<(i&(EGoodsLocalWordSize-1))) != 0
 }
 
 // Set bit i to 1
-func (b *ItemLocalBitSet) Set(i ItemLocalFieldIndex) *ItemLocalBitSet {
-	if i >= EItemLocalFiledIndexLength {
+func (b *GoodsLocalBitSet) Set(i GoodsLocalFieldIndex) *GoodsLocalBitSet {
+	if i >= EGoodsLocalFiledIndexLength {
 		return nil
 	}
-	b.set[i>>EItemLocalLog2WordSize] |= 1 << (i & (EItemLocalWordSize - 1))
+	b.set[i>>EGoodsLocalLog2WordSize] |= 1 << (i & (EGoodsLocalWordSize - 1))
 	return b
 }
 
-func (b *ItemLocalBitSet) Clear(i ItemLocalFieldIndex) *ItemLocalBitSet {
-	if i >= EItemLocalFiledIndexLength {
+func (b *GoodsLocalBitSet) Clear(i GoodsLocalFieldIndex) *GoodsLocalBitSet {
+	if i >= EGoodsLocalFiledIndexLength {
 		return b
 	}
-	b.set[i>>EItemLocalLog2WordSize] &^= 1 << (i & (EItemLocalWordSize - 1))
+	b.set[i>>EGoodsLocalLog2WordSize] &^= 1 << (i & (EGoodsLocalWordSize - 1))
 	return b
 }
 
 // Merge compare to b
-func (b *ItemLocalBitSet) Merge(compare ItemLocalBitSet) *ItemLocalBitSet {
+func (b *GoodsLocalBitSet) Merge(compare GoodsLocalBitSet) *GoodsLocalBitSet {
 	for i, word := range b.set {
 		b.set[i] = word | compare.set[i]
 	}
 	return b
 }
 
-func (b *ItemLocalBitSet) ClearAll() *ItemLocalBitSet {
+func (b *GoodsLocalBitSet) ClearAll() *GoodsLocalBitSet {
 	if b != nil {
 		for i := range b.set {
 			b.set[i] = 0
@@ -217,19 +205,19 @@ func (b *ItemLocalBitSet) ClearAll() *ItemLocalBitSet {
 	return b
 }
 
-func (b *ItemLocalBitSet) SetAll() *ItemLocalBitSet {
+func (b *GoodsLocalBitSet) SetAll() *GoodsLocalBitSet {
 	if b != nil {
 		for i := range b.set {
-			b.set[i] = EItemLocalAllBits
+			b.set[i] = EGoodsLocalAllBits
 		}
 	}
 	return b
 }
 
-func (b *ItemLocalBitSet) IsSetAll() bool {
+func (b *GoodsLocalBitSet) IsSetAll() bool {
 	if b != nil {
 		for i := range b.set {
-			if b.set[i] != EItemLocalAllBits {
+			if b.set[i] != EGoodsLocalAllBits {
 				return false
 			}
 		}
@@ -237,19 +225,19 @@ func (b *ItemLocalBitSet) IsSetAll() bool {
 	return true
 }
 
-// ItemLocalBitSet end
+// GoodsLocalBitSet end
 
-// ItemLocalSync 结构定义
+// GoodsLocalSync 结构定义
 
-type ItemLocalSync struct {
-	Data   *protocol.ItemLocal
+type GoodsLocalSync struct {
+	Data   *protocol.GoodsLocal
 	Op     int8
-	BitSet ItemLocalBitSet
+	BitSet GoodsLocalBitSet
 }
 
-// ItemLocalManager 结构定义
+// GoodsLocalManager 结构定义
 
-type ItemLocalManager struct {
+type GoodsLocalManager struct {
 
 	// 0:初始化  1:正常运行  2:非法停止
 	managerState int32
@@ -257,16 +245,16 @@ type ItemLocalManager struct {
 	loadAll int32
 
 	// 不存在 or 0:导出  1:导入开始  2:导入完成  3:准备导出  4:正在导出
-	loadUidMap ItemLocalMapUnload // map[Uid]state(atom)
+	loadUidMap GoodsLocalMapUnload // map[Uid]state(atom)
 
 	pool              *sync.Pool
-	syncChan          chan *ItemLocalSync
-	syncQueue         *[]*ItemLocalSync
-	cacheQueue        *[]*ItemLocalSync
-	FailQueue         []*ItemLocalSync
+	syncChan          chan *GoodsLocalSync
+	syncQueue         *[]*GoodsLocalSync
+	cacheQueue        *[]*GoodsLocalSync
+	FailQueue         []*GoodsLocalSync
 	lastWriteBackTime time.Duration
 
-	InsertQueue []*ItemLocalSync
+	InsertQueue []*GoodsLocalSync
 
 	syncBegin chan bool
 	syncEnd   chan bool
@@ -275,83 +263,81 @@ type ItemLocalManager struct {
 
 	engine *xorm.Engine
 
-	hashUidItemId ItemLocalHashUidItemId
+	hashUid GoodsLocalHashUid
 
-	hashUid ItemLocalHashUid
+	// hashUidMark GoodsLocalHashUidMark
 
-	// hashUidItemIdMark ItemLocalHashUidItemIdMark
-
-	bitSetAll ItemLocalBitSet
+	bitSetAll GoodsLocalBitSet
 }
 
-var gItemLocalNil = &protocol.ItemLocal{}
+var gGoodsLocalNil = &protocol.GoodsLocal{}
 
-func NewItemLocalManager(engine *xorm.Engine) (m *ItemLocalManager) {
-	m = &ItemLocalManager{engine: engine}
+func NewGoodsLocalManager(engine *xorm.Engine) (m *GoodsLocalManager) {
+	m = &GoodsLocalManager{engine: engine}
 
-	m.syncChan = make(chan *ItemLocalSync, runtime.NumCPU()*2)
-	tmpSyncQueue := make([]*ItemLocalSync, 0)
+	m.syncChan = make(chan *GoodsLocalSync, runtime.NumCPU()*2)
+	tmpSyncQueue := make([]*GoodsLocalSync, 0)
 	m.syncQueue = &tmpSyncQueue
 	m.syncEnd = make(chan bool)
 	m.syncBegin = make(chan bool)
 	m.exitBegin = make(chan bool)
 	m.exitEnd = make(chan bool)
-	tmpCacheQueue := make([]*ItemLocalSync, 0)
+	tmpCacheQueue := make([]*GoodsLocalSync, 0)
 	m.cacheQueue = &tmpCacheQueue
 	m.lastWriteBackTime = 1 * time.Millisecond
-	m.pool = &sync.Pool{New: func() interface{} { return &protocol.ItemLocal{} }}
+	m.pool = &sync.Pool{New: func() interface{} { return &protocol.GoodsLocal{} }}
 
 	m.bitSetAll.SetAll()
 
 	if engine != nil {
-		for idx, name := range ItemLocalStructFiledMap {
-			ItemLocalDBFiledMap[idx] = engine.GetColumnMapper().Obj2Table(name)
+		for idx, name := range GoodsLocalStructFiledMap {
+			GoodsLocalDBFiledMap[idx] = engine.GetColumnMapper().Obj2Table(name)
 		}
 	}
 
 	return
 }
 
-// NewItemLocal 通过主键创建对象, 已经存在直接返回. (1 数据没有导入或已经导出) 会返回nil. (2 数据已存在) 返回已存在的值
-func NewItemLocal(Uid int32, ItemId int32) (ormCls *protocol.ItemLocal) {
+// NewGoodsLocal 通过主键创建对象, 已经存在直接返回. (1 数据没有导入或已经导出) 会返回nil. (2 数据已存在) 返回已存在的值
+func NewGoodsLocal(Uid int32) (ormCls *protocol.GoodsLocal) {
 
-	if GItemLocalManager.LoadState(Uid) != EItemLocalLoadStateMemory {
+	if GGoodsLocalManager.LoadState(Uid) != EGoodsLocalLoadStateMemory {
 		ormCls = nil
 		return
 	}
 
-	ormCls = GItemLocalManager.GetItemLocalByUidItemId(Uid, ItemId)
+	ormCls = GGoodsLocalManager.GetGoodsLocalByUid(Uid)
 	if ormCls != nil {
 		return
 	}
-	ormCls, _ = GItemLocalManager.NewItemLocal(&protocol.ItemLocal{Uid: Uid, ItemId: ItemId})
+	ormCls, _ = GGoodsLocalManager.NewGoodsLocal(&protocol.GoodsLocal{Uid: Uid})
 	return
 }
 
 // PersistName 返回persist类名
-func (m *ItemLocalManager) PersistName() string {
-	return reflect.TypeOf(*gItemLocalNil).Name()
+func (m *GoodsLocalManager) PersistName() string {
+	return reflect.TypeOf(*gGoodsLocalNil).Name()
 }
 
 // PersistObj 返回persist interface{}
-func (m *ItemLocalManager) PersistUserNilObjInterface() interface{} {
-	return &protocol.ItemLocal{}
+func (m *GoodsLocalManager) PersistUserNilObjInterface() interface{} {
+	return &protocol.GoodsLocal{}
 }
 
 // PersistObj 返回persist interface{} list
-func (m *ItemLocalManager) PersistUserNilObjInterfaceList() interface{} {
-	plist := make([]*protocol.ItemLocal, 0, 0)
+func (m *GoodsLocalManager) PersistUserNilObjInterfaceList() interface{} {
+	plist := make([]*protocol.GoodsLocal, 0, 0)
 	return &plist
 }
 
 // Run 运行并导入上次失败数据
-func (m *ItemLocalManager) Run() error {
-	if atomic.CompareAndSwapInt32(&m.managerState, EItemLocalManagerStateIdle, EItemLocalManagerStateNormal) {
+func (m *GoodsLocalManager) Run() error {
+	if atomic.CompareAndSwapInt32(&m.managerState, EGoodsLocalManagerStateIdle, EGoodsLocalManagerStateNormal) {
 		if err := m.LoadFile(); err != nil {
 			return err
 		}
 		go m.Collect()
-	} else if atomic.CompareAndSwapInt32(&m.managerState, EItemLocalManagerStatePanic, EItemLocalManagerStateNormal) {
+	} else if atomic.CompareAndSwapInt32(&m.managerState, EGoodsLocalManagerStatePanic, EGoodsLocalManagerStateNormal) {
 		if err := m.LoadFile(); err != nil {
 			return err
 		}
@@ -362,16 +348,16 @@ func (m *ItemLocalManager) Run() error {
 }
 
 // Dead 管理类是否出错
-func (m *ItemLocalManager) Dead() bool {
-	return atomic.LoadInt32(&m.managerState) != EItemLocalManagerStateNormal
+func (m *GoodsLocalManager) Dead() bool {
+	return atomic.LoadInt32(&m.managerState) != EGoodsLocalManagerStateNormal
 }
 
-func (m *ItemLocalManager) BytesToPersistInterface(data []byte) (cls interface{}) {
+func (m *GoodsLocalManager) BytesToPersistInterface(data []byte) (cls interface{}) {
 	return m.BytesToPersist(data)
 }
 
 // BytesToPersist反序列化
-func (m *ItemLocalManager) BytesToPersist(data []byte) (cls *protocol.ItemLocal) {
+func (m *GoodsLocalManager) BytesToPersist(data []byte) (cls *protocol.GoodsLocal) {
 	var err error
 	if data == nil {
 		return nil
@@ -386,7 +372,7 @@ func (m *ItemLocalManager) BytesToPersist(data []byte) (cls *protocol.ItemLocal)
 		}
 	}()
 	i := 0
-	cls = &protocol.ItemLocal{}
+	cls = &protocol.GoodsLocal{}
 
 	//Uid	int32
 
@@ -399,35 +385,26 @@ func (m *ItemLocalManager) BytesToPersist(data []byte) (cls *protocol.ItemLocal)
 		i += 1
 	}
 
-	//ItemId	int32
+	//Time	int64
 
 	if data[i]&persistCore.EMarshalFlagBitSet >= 1 {
 		i += 1
 
-		cls.ItemId = int32(binary.LittleEndian.Uint32(data[i:]))
-		i += 32 / 8
-	} else {
-		i += 1
-	}
-
-	//ItemNum	int64
-
-	if data[i]&persistCore.EMarshalFlagBitSet >= 1 {
-		i += 1
-
-		cls.ItemNum = int64(binary.LittleEndian.Uint64(data[i:]))
+		cls.Time = int64(binary.LittleEndian.Uint64(data[i:]))
 		i += 64 / 8
 	} else {
 		i += 1
 	}
 
-	//ItemTime	int64
+	//Name	string
 
 	if data[i]&persistCore.EMarshalFlagBitSet >= 1 {
 		i += 1
 
-		cls.ItemTime = int64(binary.LittleEndian.Uint64(data[i:]))
-		i += 64 / 8
+		lenFieldDataName := int(binary.LittleEndian.Uint32(data[i:]))
+		i += 4
+		cls.Name = string(data[i : i+lenFieldDataName])
+		i += lenFieldDataName
 	} else {
 		i += 1
 	}
@@ -437,29 +414,27 @@ func (m *ItemLocalManager) BytesToPersist(data []byte) (cls *protocol.ItemLocal)
 
 //
 
-func (m *ItemLocalManager) PersistInterfaceToBytes(i interface{}) (data []byte) {
-	return m.PersistToBytes(i.(*protocol.ItemLocal), m.bitSetAll)
+func (m *GoodsLocalManager) PersistInterfaceToBytes(i interface{}) (data []byte) {
+	return m.PersistToBytes(i.(*protocol.GoodsLocal), m.bitSetAll)
 }
 
-func (m *ItemLocalManager) PersistInterfaceToPkStruct(i interface{}) interface{} {
-	cls, ok := i.(*protocol.ItemLocal)
+func (m *GoodsLocalManager) PersistInterfaceToPkStruct(i interface{}) interface{} {
+	cls, ok := i.(*protocol.GoodsLocal)
 	_ = cls
 	if !ok {
 		return nil
 	}
 
-	pk := ItemLocalUidItemId{
+	pk := GoodsLocalUid{
 
 		Uid: cls.Uid,
-
-		ItemId: cls.ItemId,
 	}
 	return pk
 
 }
 
 // PersistToBytes 序列化
-func (m *ItemLocalManager) PersistToBytes(cls *protocol.ItemLocal, bitSet ItemLocalBitSet) (data []byte) {
+func (m *GoodsLocalManager) PersistToBytes(cls *protocol.GoodsLocal, bitSet GoodsLocalBitSet) (data []byte) {
 	var err error
 	if cls == nil {
 		return nil
@@ -477,32 +452,24 @@ func (m *ItemLocalManager) PersistToBytes(cls *protocol.ItemLocal, bitSet ItemLo
 
 	//Uid	int32
 
-	if true || bitSet.Get(EItemLocalFieldIndexUid) {
+	if true || bitSet.Get(EGoodsLocalFieldIndexUid) {
 		size += 1 + 32/8
 	} else {
 		size += 1
 	}
 
-	//ItemId	int32
+	//Time	int64
 
-	if true || bitSet.Get(EItemLocalFieldIndexItemId) {
-		size += 1 + 32/8
-	} else {
-		size += 1
-	}
-
-	//ItemNum	int64
-
-	if bitSet.Get(EItemLocalFieldIndexItemNum) {
+	if bitSet.Get(EGoodsLocalFieldIndexTime) {
 		size += 1 + 64/8
 	} else {
 		size += 1
 	}
 
-	//ItemTime	int64
+	//Name	string
 
-	if bitSet.Get(EItemLocalFieldIndexItemTime) {
-		size += 1 + 64/8
+	if bitSet.Get(EGoodsLocalFieldIndexName) {
+		size += 1 + 4 + len(cls.Name)
 	} else {
 		size += 1
 	}
@@ -513,7 +480,7 @@ func (m *ItemLocalManager) PersistToBytes(cls *protocol.ItemLocal, bitSet ItemLo
 
 	//Uid	int32
 
-	if true || bitSet.Get(EItemLocalFieldIndexUid) {
+	if true || bitSet.Get(EGoodsLocalFieldIndexUid) {
 		data[i] |= persistCore.EMarshalFlagBitSet
 		i += 1
 
@@ -523,38 +490,28 @@ func (m *ItemLocalManager) PersistToBytes(cls *protocol.ItemLocal, bitSet ItemLo
 		i += 1
 	}
 
-	//ItemId	int32
+	//Time	int64
 
-	if true || bitSet.Get(EItemLocalFieldIndexItemId) {
+	if bitSet.Get(EGoodsLocalFieldIndexTime) {
 		data[i] |= persistCore.EMarshalFlagBitSet
 		i += 1
 
-		binary.LittleEndian.PutUint32(data[i:], uint32(cls.ItemId))
-		i += 32 / 8
-	} else {
-		i += 1
-	}
-
-	//ItemNum	int64
-
-	if bitSet.Get(EItemLocalFieldIndexItemNum) {
-		data[i] |= persistCore.EMarshalFlagBitSet
-		i += 1
-
-		binary.LittleEndian.PutUint64(data[i:], uint64(cls.ItemNum))
+		binary.LittleEndian.PutUint64(data[i:], uint64(cls.Time))
 		i += 64 / 8
 	} else {
 		i += 1
 	}
 
-	//ItemTime	int64
+	//Name	string
 
-	if bitSet.Get(EItemLocalFieldIndexItemTime) {
+	if bitSet.Get(EGoodsLocalFieldIndexName) {
 		data[i] |= persistCore.EMarshalFlagBitSet
 		i += 1
 
-		binary.LittleEndian.PutUint64(data[i:], uint64(cls.ItemTime))
-		i += 64 / 8
+		binary.LittleEndian.PutUint32(data[i:], uint32(len(cls.Name)))
+		i += 4
+		copy(data[i:], cls.Name)
+		i += len(cls.Name)
 	} else {
 		i += 1
 	}
@@ -563,7 +520,7 @@ func (m *ItemLocalManager) PersistToBytes(cls *protocol.ItemLocal, bitSet ItemLo
 }
 
 // PersistToPersistByBitSet 按位图复制数据
-func (m *ItemLocalManager) PersistToPersistByBitSet(dst, src *protocol.ItemLocal, bitSet ItemLocalBitSet) {
+func (m *GoodsLocalManager) PersistToPersistByBitSet(dst, src *protocol.GoodsLocal, bitSet GoodsLocalBitSet) {
 	var err error
 	if dst == nil || src == nil {
 		log.Infoln("PersistToPersistByBitSet Error, dst or src is nil")
@@ -580,30 +537,25 @@ func (m *ItemLocalManager) PersistToPersistByBitSet(dst, src *protocol.ItemLocal
 	}()
 
 	//Uid	int32
-	if bitSet.Get(EItemLocalFieldIndexUid) {
+	if bitSet.Get(EGoodsLocalFieldIndexUid) {
 		dst.Uid = src.Uid
 	}
 
-	//ItemId	int32
-	if bitSet.Get(EItemLocalFieldIndexItemId) {
-		dst.ItemId = src.ItemId
+	//Time	int64
+	if bitSet.Get(EGoodsLocalFieldIndexTime) {
+		dst.Time = src.Time
 	}
 
-	//ItemNum	int64
-	if bitSet.Get(EItemLocalFieldIndexItemNum) {
-		dst.ItemNum = src.ItemNum
-	}
-
-	//ItemTime	int64
-	if bitSet.Get(EItemLocalFieldIndexItemTime) {
-		dst.ItemTime = src.ItemTime
+	//Name	string
+	if bitSet.Get(EGoodsLocalFieldIndexName) {
+		dst.Name = src.Name
 	}
 
 	return
 }
 
 // BytesToPersistSync 反序列化sync
-func (m *ItemLocalManager) BytesToPersistSync(data []byte) (persistSync *ItemLocalSync) {
+func (m *GoodsLocalManager) BytesToPersistSync(data []byte) (persistSync *GoodsLocalSync) {
 	var err error
 	if data == nil {
 		return nil
@@ -619,9 +571,9 @@ func (m *ItemLocalManager) BytesToPersistSync(data []byte) (persistSync *ItemLoc
 	}()
 	i := 0
 
-	const bitSetSize = (int)((EItemLocalFiledIndexLength>>EItemLocalLog2WordSize)+1) * 8
+	const bitSetSize = (int)((EGoodsLocalFiledIndexLength>>EGoodsLocalLog2WordSize)+1) * 8
 
-	persistSync = &ItemLocalSync{}
+	persistSync = &GoodsLocalSync{}
 	lenPersistData := len(data) - bitSetSize - 1
 
 	persistSync.Data = m.BytesToPersist(data[:lenPersistData])
@@ -638,7 +590,7 @@ func (m *ItemLocalManager) BytesToPersistSync(data []byte) (persistSync *ItemLoc
 }
 
 // PersistSyncToBytes 序列化sync
-func (m *ItemLocalManager) PersistSyncToBytes(persistSync *ItemLocalSync) (data []byte) {
+func (m *GoodsLocalManager) PersistSyncToBytes(persistSync *GoodsLocalSync) (data []byte) {
 	var err error
 	if persistSync == nil {
 		return nil
@@ -654,7 +606,7 @@ func (m *ItemLocalManager) PersistSyncToBytes(persistSync *ItemLocalSync) (data 
 	}()
 	size := 0
 
-	const bitSetSize = (int)((EItemLocalFiledIndexLength>>EItemLocalLog2WordSize)+1) * 8
+	const bitSetSize = (int)((EGoodsLocalFiledIndexLength>>EGoodsLocalLog2WordSize)+1) * 8
 
 	pData := m.PersistToBytes(persistSync.Data, persistSync.BitSet)
 	size += len(pData) + 1 + bitSetSize
@@ -676,12 +628,12 @@ func (m *ItemLocalManager) PersistSyncToBytes(persistSync *ItemLocalSync) (data 
 }
 
 // StringToPersistSyncInterface 反序列化2syncInterface
-func (m *ItemLocalManager) StringToPersistSyncInterface(data string) interface{} {
+func (m *GoodsLocalManager) StringToPersistSyncInterface(data string) interface{} {
 	return m.StringToPersistSync(data)
 }
 
 // StringToPersistSync 反序列化2sync
-func (m *ItemLocalManager) StringToPersistSync(data string) (persistSync *ItemLocalSync) {
+func (m *GoodsLocalManager) StringToPersistSync(data string) (persistSync *GoodsLocalSync) {
 	if data == "" {
 		return nil
 	}
@@ -693,7 +645,7 @@ func (m *ItemLocalManager) StringToPersistSync(data string) (persistSync *ItemLo
 }
 
 // PersistSyncToString 序列化2sync
-func (m *ItemLocalManager) PersistSyncToString(persistSync *ItemLocalSync) (data string) {
+func (m *GoodsLocalManager) PersistSyncToString(persistSync *GoodsLocalSync) (data string) {
 	buf := m.PersistSyncToBytes(persistSync)
 	if buf == nil {
 		return ""
@@ -703,7 +655,7 @@ func (m *ItemLocalManager) PersistSyncToString(persistSync *ItemLocalSync) (data
 }
 
 // UnmarshalFailQueue 失败队列反序列化
-func (m *ItemLocalManager) UnmarshalFailQueue(data []byte, failQueue *[]*ItemLocalSync) (err error) {
+func (m *GoodsLocalManager) UnmarshalFailQueue(data []byte, failQueue *[]*GoodsLocalSync) (err error) {
 	if data == nil || failQueue == nil {
 		return nil
 	}
@@ -719,7 +671,7 @@ func (m *ItemLocalManager) UnmarshalFailQueue(data []byte, failQueue *[]*ItemLoc
 	i := 0
 	lenFailQueue := binary.LittleEndian.Uint32(data[i:])
 	i += 4
-	*failQueue = make([]*ItemLocalSync, lenFailQueue)
+	*failQueue = make([]*GoodsLocalSync, lenFailQueue)
 	for idx := 0; idx < int(lenFailQueue); idx++ {
 		lenPersistSyncData := int(binary.LittleEndian.Uint32(data[i:]))
 		i += 4
@@ -731,10 +683,10 @@ func (m *ItemLocalManager) UnmarshalFailQueue(data []byte, failQueue *[]*ItemLoc
 }
 
 // MarshalFailQueue 失败队列序列化
-func (m *ItemLocalManager) MarshalFailQueue(failQueue []*ItemLocalSync) (data []byte, err error) {
+func (m *GoodsLocalManager) MarshalFailQueue(failQueue []*GoodsLocalSync) (data []byte, err error) {
 	var idx int
 	var size int
-	var persistSync *ItemLocalSync
+	var persistSync *GoodsLocalSync
 	defer func() {
 		if r := recover(); r != nil {
 			log.Infoln("recovered in ", r)
@@ -767,10 +719,10 @@ func (m *ItemLocalManager) MarshalFailQueue(failQueue []*ItemLocalSync) (data []
 }
 
 // acquireDeepCopyObject 拷贝一个新对象用于写回
-func (m *ItemLocalManager) acquireDeepCopyObject(cls *protocol.ItemLocal) (ret *protocol.ItemLocal) {
-	if v, ok := ((interface{})(cls)).(ItemLocalDeepCopy); ok {
-		//ret = m.pool.Get().(*protocol.ItemLocal)
-		ret = &protocol.ItemLocal{}
+func (m *GoodsLocalManager) acquireDeepCopyObject(cls *protocol.GoodsLocal) (ret *protocol.GoodsLocal) {
+	if v, ok := ((interface{})(cls)).(GoodsLocalDeepCopy); ok {
+		//ret = m.pool.Get().(*protocol.GoodsLocal)
+		ret = &protocol.GoodsLocal{}
 		v.CopyTo(ret)
 	} else {
 		ret = m.BytesToPersist(m.PersistToBytes(cls, m.bitSetAll))
@@ -779,19 +731,19 @@ func (m *ItemLocalManager) acquireDeepCopyObject(cls *protocol.ItemLocal) (ret *
 }
 
 // releaseDeepCopyObject 释放对象
-func (m *ItemLocalManager) releaseDeepCopyObject(cls *protocol.ItemLocal) {
-	//if _, ok := ((interface{})(cls)).(*ItemLocalDeepCopy); ok {
+func (m *GoodsLocalManager) releaseDeepCopyObject(cls *protocol.GoodsLocal) {
+	//if _, ok := ((interface{})(cls)).(*GoodsLocalDeepCopy); ok {
 	//	m.pool.Put(cls)
 	//}
 	return
 }
 
 // CheckOverload 检查负载
-func (m *ItemLocalManager) CheckOverload() {
+func (m *GoodsLocalManager) CheckOverload() {
 	// queueLength 不是精确值,  cacheQueue, FailQueue 一写多读
 	queueLength := len(*m.cacheQueue) + len(m.FailQueue)
 	if queueLength > 10000 {
-		if v, ok := ((interface{})(gItemLocalNil)).(ItemLocalOverload); ok {
+		if v, ok := ((interface{})(gGoodsLocalNil)).(GoodsLocalOverload); ok {
 			go recoverutils.RecoverWrapFunc(func() { v.Overload(queueLength, m.lastWriteBackTime) })
 		} else {
 		}
@@ -799,83 +751,61 @@ func (m *ItemLocalManager) CheckOverload() {
 	}
 }
 
-// addItemLocal添加一个对象
-func (m *ItemLocalManager) addItemLocal(cls *protocol.ItemLocal) (*protocol.ItemLocal, bool) {
+// addGoodsLocal添加一个对象
+func (m *GoodsLocalManager) addGoodsLocal(cls *protocol.GoodsLocal) (*protocol.GoodsLocal, bool) {
 
-	actual, loaded := m.hashUidItemId.LoadOrStore(ItemLocalKeyTypeHashUidItemId{cls.Uid, cls.ItemId}, cls)
+	actual, loaded := m.hashUid.LoadOrStore(GoodsLocalKeyTypeHashUid{cls.Uid}, cls)
 	if !loaded {
 		actual = cls
-
-		if v, ok := m.hashUid.LoadOrStore(ItemLocalKeyTypeHashUid{cls.Uid}, &ItemLocalSet{}); !ok {
-			v.Store(cls, true)
-		} else {
-			v.Store(cls, true)
-		}
 
 	}
 	return actual, !loaded
 }
 
-// removeItemLocal 删除一个对象
-func (m *ItemLocalManager) removeItemLocal(cls *protocol.ItemLocal) {
-	// m.hashUidItemIdMark.Delete(ItemLocalKeyTypeHashUidItemId{ cls.Uid,cls.ItemId, })
+// removeGoodsLocal 删除一个对象
+func (m *GoodsLocalManager) removeGoodsLocal(cls *protocol.GoodsLocal) {
+	// m.hashUidMark.Delete(GoodsLocalKeyTypeHashUid{ cls.Uid, })
 
-	if v, ok := m.hashUid.Load(ItemLocalKeyTypeHashUid{cls.Uid}); ok {
-		v.Delete(cls)
-	}
-	if v, ok := m.hashUid.Load(ItemLocalKeyTypeHashUid{cls.Uid}); ok {
-		has := false
-		v.Range(func(key *protocol.ItemLocal, value bool) bool {
-			has = true
-			return false
-		})
-		if !has {
-			m.hashUid.Delete(ItemLocalKeyTypeHashUid{cls.Uid})
-		}
-	}
-
-	m.hashUidItemId.Delete(ItemLocalKeyTypeHashUidItemId{cls.Uid, cls.ItemId})
+	m.hashUid.Delete(GoodsLocalKeyTypeHashUid{cls.Uid})
 
 	return
 }
 
 // InitDS ds并发map初始化
-func (m *ItemLocalManager) InitDS(cls *protocol.ItemLocal) {
+func (m *GoodsLocalManager) InitDS(cls *protocol.GoodsLocal) {
 	// todo
 	// cls.MyMap = ds.RWMapInt32Int32{}
 
 	//Uid	int32
 
-	//ItemId	int32
+	//Time	int64
 
-	//ItemNum	int64
-
-	//ItemTime	int64
+	//Name	string
 
 }
 
-// NewItemLocal 添加对象并异步写回数据库, (1 数据没有导入或已经导出, 2 数据已存在, 3 对象为空) 会返回失败
-func (m *ItemLocalManager) NewItemLocal(cls *protocol.ItemLocal) (*protocol.ItemLocal, error) {
+// NewGoodsLocal 添加对象并异步写回数据库, (1 数据没有导入或已经导出, 2 数据已存在, 3 对象为空) 会返回失败
+func (m *GoodsLocalManager) NewGoodsLocal(cls *protocol.GoodsLocal) (*protocol.GoodsLocal, error) {
 
 	if cls == nil {
 		return nil, persistCore.EPersistErrorNil
 	}
 
-	if m.LoadState(cls.Uid) != EItemLocalLoadStateMemory {
+	if m.LoadState(cls.Uid) != EGoodsLocalLoadStateMemory {
 		return nil, persistCore.EPersistErrorNotInMemory
 	}
 
-	actual, success := m.addItemLocal(cls)
+	actual, success := m.addGoodsLocal(cls)
 
 	if success {
 		m.InitDS(cls)
-		bitSet := ItemLocalBitSet{}
+		bitSet := GoodsLocalBitSet{}
 		bitSet.SetAll()
 		newCls := m.acquireDeepCopyObject(cls)
 
-		persistSync := &ItemLocalSync{Data: newCls, Op: EItemLocalOpInsert, BitSet: bitSet}
+		persistSync := &GoodsLocalSync{Data: newCls, Op: EGoodsLocalOpInsert, BitSet: bitSet}
 
-		log.Infoln("[sql trace ItemLocal]", m.PersistSyncToString(persistSync))
+		log.Infoln("[sql trace GoodsLocal]", m.PersistSyncToString(persistSync))
 
 		m.syncChan <- persistSync
 
@@ -886,31 +816,31 @@ func (m *ItemLocalManager) NewItemLocal(cls *protocol.ItemLocal) (*protocol.Item
 	return actual, nil
 }
 
-// DeleteItemLocal 删除对象并异步写回数据库 (1 数据没有导入或已经导出, 2 数据已经重新导入, 3 对象为空) 会返回失败
-func (m *ItemLocalManager) DeleteItemLocal(cls *protocol.ItemLocal) error {
+// DeleteGoodsLocal 删除对象并异步写回数据库 (1 数据没有导入或已经导出, 2 数据已经重新导入, 3 对象为空) 会返回失败
+func (m *GoodsLocalManager) DeleteGoodsLocal(cls *protocol.GoodsLocal) error {
 	if cls == nil {
 		return persistCore.EPersistErrorNil
 	}
 
-	if m.LoadState(cls.Uid) != EItemLocalLoadStateMemory {
+	if m.LoadState(cls.Uid) != EGoodsLocalLoadStateMemory {
 		return persistCore.EPersistErrorNotInMemory
 	}
 
-	p := m.GetItemLocalByUidItemId(cls.Uid, cls.ItemId)
+	p := m.GetGoodsLocalByUid(cls.Uid)
 	if p == nil || p != cls {
 		return persistCore.EPersistErrorOutOfDate
 	}
 
-	m.removeItemLocal(cls)
+	m.removeGoodsLocal(cls)
 
 	// 主键不能修改
-	bitSet := ItemLocalBitSet{}
+	bitSet := GoodsLocalBitSet{}
 	bitSet.SetAll()
 	newCls := m.acquireDeepCopyObject(cls)
 
-	persistSync := &ItemLocalSync{Data: newCls, Op: EItemLocalOpDelete, BitSet: bitSet}
+	persistSync := &GoodsLocalSync{Data: newCls, Op: EGoodsLocalOpDelete, BitSet: bitSet}
 
-	log.Infoln("[sql trace ItemLocal]", m.PersistSyncToString(persistSync))
+	log.Infoln("[sql trace GoodsLocal]", m.PersistSyncToString(persistSync))
 
 	m.syncChan <- persistSync
 
@@ -918,27 +848,27 @@ func (m *ItemLocalManager) DeleteItemLocal(cls *protocol.ItemLocal) error {
 }
 
 // DeleteAll 删除所有对象并异步写回数据库
-func (m *ItemLocalManager) DeleteAll() {
+func (m *GoodsLocalManager) DeleteAll() {
 
-	var tmpItemLocalList []*protocol.ItemLocal
-	m.hashUidItemId.Range(func(k ItemLocalKeyTypeHashUidItemId, v *protocol.ItemLocal) bool {
-		tmpItemLocalList = append(tmpItemLocalList, v)
+	var tmpGoodsLocalList []*protocol.GoodsLocal
+	m.hashUid.Range(func(k GoodsLocalKeyTypeHashUid, v *protocol.GoodsLocal) bool {
+		tmpGoodsLocalList = append(tmpGoodsLocalList, v)
 		return true
 	})
-	for _, cls := range tmpItemLocalList {
+	for _, cls := range tmpGoodsLocalList {
 		if cls == nil {
 			continue
 		}
-		m.removeItemLocal(cls)
+		m.removeGoodsLocal(cls)
 
 		// 主键不能修改
-		bitSet := ItemLocalBitSet{}
+		bitSet := GoodsLocalBitSet{}
 		bitSet.SetAll()
 		newCls := m.acquireDeepCopyObject(cls)
 
-		persistSync := &ItemLocalSync{Data: newCls, Op: EItemLocalOpDelete, BitSet: bitSet}
+		persistSync := &GoodsLocalSync{Data: newCls, Op: EGoodsLocalOpDelete, BitSet: bitSet}
 
-		log.Infoln("[sql trace ItemLocal]", m.PersistSyncToString(persistSync))
+		log.Infoln("[sql trace GoodsLocal]", m.PersistSyncToString(persistSync))
 
 		m.syncChan <- persistSync
 
@@ -950,28 +880,28 @@ func (m *ItemLocalManager) DeleteAll() {
 // 不建议修改索引列
 
 // MarkUpdate 标记脏对象并异步写回数据库, (1 数据没有导入或已经导出, 2 数据已经重新导入, 3 对象为空) 会返回失败
-func (m *ItemLocalManager) MarkUpdate(cls *protocol.ItemLocal) error {
+func (m *GoodsLocalManager) MarkUpdate(cls *protocol.GoodsLocal) error {
 	if cls == nil {
 		return persistCore.EPersistErrorNil
 	}
 
-	if m.LoadState(cls.Uid) != EItemLocalLoadStateMemory {
+	if m.LoadState(cls.Uid) != EGoodsLocalLoadStateMemory {
 		return persistCore.EPersistErrorNotInMemory
 	}
 
-	p := m.GetItemLocalByUidItemId(cls.Uid, cls.ItemId)
+	p := m.GetGoodsLocalByUid(cls.Uid)
 	if p == nil || p != cls {
 		return persistCore.EPersistErrorOutOfDate
 	}
 
 	m.InitDS(cls)
-	bitSet := ItemLocalBitSet{}
+	bitSet := GoodsLocalBitSet{}
 	bitSet.SetAll()
 	newCls := m.acquireDeepCopyObject(cls)
 
-	persistSync := &ItemLocalSync{Data: newCls, Op: EItemLocalOpUpdate, BitSet: bitSet}
+	persistSync := &GoodsLocalSync{Data: newCls, Op: EGoodsLocalOpUpdate, BitSet: bitSet}
 
-	log.Infoln("[sql trace ItemLocal]", m.PersistSyncToString(persistSync))
+	log.Infoln("[sql trace GoodsLocal]", m.PersistSyncToString(persistSync))
 
 	m.syncChan <- persistSync
 
@@ -979,16 +909,16 @@ func (m *ItemLocalManager) MarkUpdate(cls *protocol.ItemLocal) error {
 }
 
 // MarkUpdateByBitSet 标记脏对象并异步写回数据库, (1 数据没有导入或已经导出, 2 数据已经重新导入, 3 对象为空) 会返回失败
-func (m *ItemLocalManager) MarkUpdateByBitSet(cls *protocol.ItemLocal, bitSet ItemLocalBitSet) error {
+func (m *GoodsLocalManager) MarkUpdateByBitSet(cls *protocol.GoodsLocal, bitSet GoodsLocalBitSet) error {
 	if cls == nil {
 		return persistCore.EPersistErrorNil
 	}
 
-	if m.LoadState(cls.Uid) != EItemLocalLoadStateMemory {
+	if m.LoadState(cls.Uid) != EGoodsLocalLoadStateMemory {
 		return persistCore.EPersistErrorNotInMemory
 	}
 
-	p := m.GetItemLocalByUidItemId(cls.Uid, cls.ItemId)
+	p := m.GetGoodsLocalByUid(cls.Uid)
 	if p == nil || p != cls {
 		return persistCore.EPersistErrorOutOfDate
 	}
@@ -997,9 +927,9 @@ func (m *ItemLocalManager) MarkUpdateByBitSet(cls *protocol.ItemLocal, bitSet It
 
 	newCls := m.acquireDeepCopyObject(cls)
 
-	persistSync := &ItemLocalSync{Data: newCls, Op: EItemLocalOpUpdate, BitSet: bitSet}
+	persistSync := &GoodsLocalSync{Data: newCls, Op: EGoodsLocalOpUpdate, BitSet: bitSet}
 
-	log.Infoln("[sql trace ItemLocal]", m.PersistSyncToString(persistSync))
+	log.Infoln("[sql trace GoodsLocal]", m.PersistSyncToString(persistSync))
 
 	m.syncChan <- persistSync
 
@@ -1007,35 +937,23 @@ func (m *ItemLocalManager) MarkUpdateByBitSet(cls *protocol.ItemLocal, bitSet It
 }
 
 // MarkUpdateByFieldIndex 标记脏对象并异步写回数据库, (1 数据没有导入或已经导出, 2 数据已经重新导入, 3 对象为空) 会返回失败
-func (m *ItemLocalManager) MarkUpdateByFieldIndex(cls *protocol.ItemLocal, fieldIndex ItemLocalFieldIndex) error {
-	return m.MarkUpdateByBitSet(cls, *((&ItemLocalBitSet{}).Set(fieldIndex)))
+func (m *GoodsLocalManager) MarkUpdateByFieldIndex(cls *protocol.GoodsLocal, fieldIndex GoodsLocalFieldIndex) error {
+	return m.MarkUpdateByBitSet(cls, *((&GoodsLocalBitSet{}).Set(fieldIndex)))
 }
 
-// GetItemLocalByUidItemId 通过索引查找对象
-func (m *ItemLocalManager) GetItemLocalByUidItemId(Uid int32, ItemId int32) *protocol.ItemLocal {
+// GetGoodsLocalByUid 通过索引查找对象
+func (m *GoodsLocalManager) GetGoodsLocalByUid(Uid int32) *protocol.GoodsLocal {
 
-	if data, ok := m.hashUidItemId.Load(ItemLocalKeyTypeHashUidItemId{Uid, ItemId}); ok {
+	if data, ok := m.hashUid.Load(GoodsLocalKeyTypeHashUid{Uid}); ok {
 		return data
 	}
 	return nil
 }
 
-// GetItemLocalsByUid 通过索引查找对象
-func (m *ItemLocalManager) GetItemLocalsByUid(Uid int32) (ret []*protocol.ItemLocal) {
-
-	if data, ok := m.hashUid.Load(ItemLocalKeyTypeHashUid{Uid}); ok {
-		data.Range(func(k *protocol.ItemLocal, v bool) bool {
-			ret = append(ret, k)
-			return true
-		})
-	}
-	return
-}
-
 // GetAll 通过主键查找所有对象
-func (m *ItemLocalManager) GetAll() (ret []*protocol.ItemLocal) {
+func (m *GoodsLocalManager) GetAll() (ret []*protocol.GoodsLocal) {
 
-	m.hashUidItemId.Range(func(k ItemLocalKeyTypeHashUidItemId, v *protocol.ItemLocal) bool {
+	m.hashUid.Range(func(k GoodsLocalKeyTypeHashUid, v *protocol.GoodsLocal) bool {
 		ret = append(ret, v)
 		return true
 	})
@@ -1043,91 +961,91 @@ func (m *ItemLocalManager) GetAll() (ret []*protocol.ItemLocal) {
 }
 
 // LoadAllState 所有数据导入状态
-func (m *ItemLocalManager) LoadAllState() int32 {
+func (m *GoodsLocalManager) LoadAllState() int32 {
 	return atomic.LoadInt32(&m.loadAll)
 }
 
 // LoadAll (非线程安全) 导入所有数据, 全导入后只能全导出, 不能再按照key导入导出
-func (m *ItemLocalManager) LoadAll() (err error) {
-	log.Infoln("ItemLocalManager LoadAll begin")
+func (m *GoodsLocalManager) LoadAll() (err error) {
+	log.Infoln("GoodsLocalManager LoadAll begin")
 	// 未全导入状态切换到全导入
-	if atomic.CompareAndSwapInt32(&m.loadAll, EItemLocalTableStateDisk, EItemLocalTableStateLoading) {
-		rows := make([]*protocol.ItemLocal, 0)
-		err = m.engine.Find(&rows, gItemLocalNil)
+	if atomic.CompareAndSwapInt32(&m.loadAll, EGoodsLocalTableStateDisk, EGoodsLocalTableStateLoading) {
+		rows := make([]*protocol.GoodsLocal, 0)
+		err = m.engine.Find(&rows, gGoodsLocalNil)
 		if err != nil {
-			atomic.StoreInt32(&m.loadAll, EItemLocalTableStateDisk)
+			atomic.StoreInt32(&m.loadAll, EGoodsLocalTableStateDisk)
 			return err
 		} else {
 
 			for _, row := range rows {
-				m.addItemLocal(row)
+				m.addGoodsLocal(row)
 			}
-			atomic.StoreInt32(&m.loadAll, EItemLocalTableStateMemory)
+			atomic.StoreInt32(&m.loadAll, EGoodsLocalTableStateMemory)
 		}
 	} else {
 		return persistCore.EPersistErrorIncorrectState
 	}
-	log.Infoln("ItemLocalManager LoadAll end")
+	log.Infoln("GoodsLocalManager LoadAll end")
 	return
 }
 
 // LoadState 查询包含该key的数据导入状态
-func (m *ItemLocalManager) LoadState(Uid int32) int32 {
-	if atomic.LoadInt32(&m.loadAll) == EItemLocalTableStateDisk {
+func (m *GoodsLocalManager) LoadState(Uid int32) int32 {
+	if atomic.LoadInt32(&m.loadAll) == EGoodsLocalTableStateDisk {
 		if value, ok := m.loadUidMap.Load(Uid); ok {
 			state := value
 			return atomic.LoadInt32(state)
 		} else {
-			return EItemLocalLoadStateDisk
+			return EGoodsLocalLoadStateDisk
 		}
 	} else {
-		return EItemLocalLoadStateMemory
+		return EGoodsLocalLoadStateMemory
 	}
 }
 
 // SetLoadState2Memory 没有数据时, 标记数据在内存中. 仅用于第一次数据库导入空数据, 错误使用会导致未定义的行为
-func (m *ItemLocalManager) SetLoadState2Memory(Uid int32) {
-	if atomic.LoadInt32(&m.loadAll) == EItemLocalTableStateDisk {
-		p := int32(EItemLocalLoadStateMemory)
+func (m *GoodsLocalManager) SetLoadState2Memory(Uid int32) {
+	if atomic.LoadInt32(&m.loadAll) == EGoodsLocalTableStateDisk {
+		p := int32(EGoodsLocalLoadStateMemory)
 		m.loadUidMap.Store(Uid, &p)
 	} else {
 	}
 }
 
 // Load 按照key导入数据, 必须存在unload key的索引
-func (m *ItemLocalManager) Load(Uid int32) (err error) {
+func (m *GoodsLocalManager) Load(Uid int32) (err error) {
 	// LoadAll后不能再次Load
-	if atomic.LoadInt32(&m.loadAll) == EItemLocalTableStateDisk {
+	if atomic.LoadInt32(&m.loadAll) == EGoodsLocalTableStateDisk {
 		p := int32(0)
 		value, _ := m.loadUidMap.LoadOrStore(Uid, &p)
 		state := value
 		// 检查导入状态
 		switch atomic.LoadInt32(state) {
 		// 未导入状态切换到导入
-		case EItemLocalLoadStateDisk:
-			if atomic.CompareAndSwapInt32(state, EItemLocalLoadStateDisk, EItemLocalLoadStateLoading) {
-				rows := make([]*protocol.ItemLocal, 0)
-				err = m.engine.Find(&rows, &protocol.ItemLocal{Uid: Uid})
+		case EGoodsLocalLoadStateDisk:
+			if atomic.CompareAndSwapInt32(state, EGoodsLocalLoadStateDisk, EGoodsLocalLoadStateLoading) {
+				rows := make([]*protocol.GoodsLocal, 0)
+				err = m.engine.Find(&rows, &protocol.GoodsLocal{Uid: Uid})
 
 				if err != nil { // 导入失败, 状态回到导出
-					atomic.StoreInt32(state, EItemLocalLoadStateDisk)
+					atomic.StoreInt32(state, EGoodsLocalLoadStateDisk)
 				} else {
 
 					for _, row := range rows {
-						m.addItemLocal(row)
+						m.addGoodsLocal(row)
 					}
-					atomic.StoreInt32(state, EItemLocalLoadStateMemory)
+					atomic.StoreInt32(state, EGoodsLocalLoadStateMemory)
 				}
 				return
 			} else { // 期间状态变化,不确定操作是否成功
 				return persistCore.EPersistErrorUnknownError
 			}
 
-		case EItemLocalLoadStateLoading: // 正在导入
+		case EGoodsLocalLoadStateLoading: // 正在导入
 			// 并发导入暂时轮询等待
 			bTime := time.Now().Unix()
 			for {
-				if atomic.LoadInt32(state) != EItemLocalLoadStateLoading {
+				if atomic.LoadInt32(state) != EGoodsLocalLoadStateLoading {
 					break
 				}
 				if time.Now().Unix() > bTime+persistCore.ELoadPollingTimeOut {
@@ -1135,23 +1053,23 @@ func (m *ItemLocalManager) Load(Uid int32) (err error) {
 				}
 				time.Sleep(time.Millisecond * 100)
 			}
-			if atomic.LoadInt32(state) == EItemLocalLoadStateMemory {
+			if atomic.LoadInt32(state) == EGoodsLocalLoadStateMemory {
 				return
 			} else {
 				return persistCore.EPersistErrorUnknownError
 			}
 
-		case EItemLocalLoadStateMemory: // 导入完成
+		case EGoodsLocalLoadStateMemory: // 导入完成
 			return
 
-		case EItemLocalLoadStatePrepareUnloading: // 准备导出,立即取消导出
-			if atomic.CompareAndSwapInt32(state, EItemLocalLoadStatePrepareUnloading, EItemLocalLoadStateMemory) {
+		case EGoodsLocalLoadStatePrepareUnloading: // 准备导出,立即取消导出
+			if atomic.CompareAndSwapInt32(state, EGoodsLocalLoadStatePrepareUnloading, EGoodsLocalLoadStateMemory) {
 				return
 			} else { // 期间状态变化,不确定操作是否成功
 				return persistCore.EPersistErrorUnknownError
 			}
 
-		case EItemLocalLoadStateUnloading: // 正在导出
+		case EGoodsLocalLoadStateUnloading: // 正在导出
 			return persistCore.EPersistErrorUnloading
 		default: // ???
 			return persistCore.EPersistErrorUnknownError
@@ -1162,19 +1080,19 @@ func (m *ItemLocalManager) Load(Uid int32) (err error) {
 }
 
 // UnloadAll (非线程安全) 导出所有数据, 调用UnloadAll后,不允许再修改相关的数据(必须先导入才能修改数据)
-func (m *ItemLocalManager) UnloadAll() (err error) {
-	var clsList []*protocol.ItemLocal
+func (m *GoodsLocalManager) UnloadAll() (err error) {
+	var clsList []*protocol.GoodsLocal
 	// 未导入状态切换到导入
-	if atomic.CompareAndSwapInt32(&m.loadAll, EItemLocalTableStateMemory, EItemLocalTableStateUnloading) {
+	if atomic.CompareAndSwapInt32(&m.loadAll, EGoodsLocalTableStateMemory, EGoodsLocalTableStateUnloading) {
 
-		m.hashUidItemId.Range(func(k ItemLocalKeyTypeHashUidItemId, v *protocol.ItemLocal) bool {
+		m.hashUid.Range(func(k GoodsLocalKeyTypeHashUid, v *protocol.GoodsLocal) bool {
 			clsList = append(clsList, v)
 			return true
 		})
 		for _, cls := range clsList {
-			m.removeItemLocal(cls)
+			m.removeGoodsLocal(cls)
 		}
-		atomic.StoreInt32(&m.loadAll, EItemLocalTableStateDisk)
+		atomic.StoreInt32(&m.loadAll, EGoodsLocalTableStateDisk)
 	} else {
 		return persistCore.EPersistErrorIncorrectState
 	}
@@ -1182,28 +1100,28 @@ func (m *ItemLocalManager) UnloadAll() (err error) {
 }
 
 // Unload 按照key导出数据, 必须存在unload key的索引. 调用Unload后,不允许再修改相关的数据(必须先导入才能修改数据).
-func (m *ItemLocalManager) Unload(Uid int32) (err error) {
+func (m *GoodsLocalManager) Unload(Uid int32) (err error) {
 
 	// LoadAll后不能unload
-	if atomic.LoadInt32(&m.loadAll) == EItemLocalTableStateDisk {
+	if atomic.LoadInt32(&m.loadAll) == EGoodsLocalTableStateDisk {
 		if value, ok := m.loadUidMap.Load(Uid); ok {
 			state := value
 
 			switch atomic.LoadInt32(state) {
-			case EItemLocalLoadStateDisk: // 未导入
+			case EGoodsLocalLoadStateDisk: // 未导入
 				return //persistCore.EPersistErrorNotInMemory
-			case EItemLocalLoadStateLoading: // 正在导入
+			case EGoodsLocalLoadStateLoading: // 正在导入
 				return persistCore.EPersistErrorLoading
-			case EItemLocalLoadStateMemory: // 导入完成, 开始导出吧
-				if atomic.CompareAndSwapInt32(state, EItemLocalLoadStateMemory, EItemLocalLoadStatePrepareUnloading) {
-					m.syncChan <- &ItemLocalSync{Data: &protocol.ItemLocal{Uid: Uid}, Op: EItemLocalOpUnload}
+			case EGoodsLocalLoadStateMemory: // 导入完成, 开始导出吧
+				if atomic.CompareAndSwapInt32(state, EGoodsLocalLoadStateMemory, EGoodsLocalLoadStatePrepareUnloading) {
+					m.syncChan <- &GoodsLocalSync{Data: &protocol.GoodsLocal{Uid: Uid}, Op: EGoodsLocalOpUnload}
 					return
 				} else { // 期间状态变化,不确定操作是否成功
 					return persistCore.EPersistErrorUnknownError
 				}
-			case EItemLocalLoadStatePrepareUnloading: // 准备导出, 立即取消导出
+			case EGoodsLocalLoadStatePrepareUnloading: // 准备导出, 立即取消导出
 				return //persistCore.EPersistErrorAlreadyUnload
-			case EItemLocalLoadStateUnloading: // 正在导出, 导入失败
+			case EGoodsLocalLoadStateUnloading: // 正在导出, 导入失败
 				return //persistCore.EPersistErrorUnloading
 			default:
 				return persistCore.EPersistErrorUnknownError
@@ -1218,22 +1136,23 @@ func (m *ItemLocalManager) Unload(Uid int32) (err error) {
 }
 
 // unload (非线程安全) 按照key导出数据, 必须存在unload key的索引. 调用Unload后,不允许再修改相关的数据(必须先导入才能修改数据).
-func (m *ItemLocalManager) unload(Uid int32) {
+func (m *GoodsLocalManager) unload(Uid int32) {
 
-	for _, cls := range m.GetItemLocalsByUid(Uid) {
-		m.removeItemLocal(cls)
+	cls := m.GetGoodsLocalByUid(Uid)
+	if cls != nil {
+		m.removeGoodsLocal(cls)
 	}
 
 }
 
-var GItemLocalManager *ItemLocalManager
+var GGoodsLocalManager *GoodsLocalManager
 
 // init 注册管理类
 func init() {
 
 	if GetDB == nil {
 		log.Infoln(persistCore.EPersistErrorEngineNil)
-		persistCore.RegisterPersistLazy("ItemLocal", GItemLocalManager)
+		persistCore.RegisterPersistLazy("GoodsLocal", GGoodsLocalManager)
 		return
 	}
 	engine := GetDB()
@@ -1241,18 +1160,18 @@ func init() {
 		log.Infoln(persistCore.EPersistErrorEngineNil)
 		return
 	}
-	GItemLocalManager = NewItemLocalManager(engine)
-	Register("ItemLocal", GItemLocalManager)
-	// go GItemLocalManager.Collect()
+	GGoodsLocalManager = NewGoodsLocalManager(engine)
+	Register("GoodsLocal", GGoodsLocalManager)
+	// go GGoodsLocalManager.Collect()
 
-	//for idx, name := range ItemLocalStructFiledMap {
-	//	ItemLocalDBFiledMap[idx] = engine.GetColumnMapper().Obj2Table(name)
+	//for idx, name := range GoodsLocalStructFiledMap {
+	//	GoodsLocalDBFiledMap[idx] = engine.GetColumnMapper().Obj2Table(name)
 	//}
 
 }
 
 // LazyInit 惰性创建注册初始化
-func (m *ItemLocalManager) LazyInit() (err error) {
+func (m *GoodsLocalManager) LazyInit() (err error) {
 
 	if GetDB == nil {
 		err = errors.New("GetDB is nil")
@@ -1263,14 +1182,14 @@ func (m *ItemLocalManager) LazyInit() (err error) {
 		err = errors.New("engine is nil")
 		return
 	}
-	GItemLocalManager = NewItemLocalManager(engine)
-	Register("ItemLocal", GItemLocalManager)
+	GGoodsLocalManager = NewGoodsLocalManager(engine)
+	Register("GoodsLocal", GGoodsLocalManager)
 
 	return
 }
 
 // noneFunc 惰性创建注册初始化
-func (m *ItemLocalManager) noneFunc() {
+func (m *GoodsLocalManager) noneFunc() {
 	math.Abs(1.0)
 	_ = jsoniter.ConfigCompatibleWithStandardLibrary
 	_ = json.Marshal
@@ -1283,7 +1202,7 @@ func (m *ItemLocalManager) noneFunc() {
 }
 
 // SaveDB xorm写数据库
-func (m *ItemLocalManager) SaveDB(session *xorm.Session, persistSync *ItemLocalSync) (err error) {
+func (m *GoodsLocalManager) SaveDB(session *xorm.Session, persistSync *GoodsLocalSync) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Infoln("recovered in ", r)
@@ -1294,65 +1213,65 @@ func (m *ItemLocalManager) SaveDB(session *xorm.Session, persistSync *ItemLocalS
 		}
 	}()
 	switch persistSync.Op {
-	case EItemLocalOpInsert:
+	case EGoodsLocalOpInsert:
 
 		_, err = session.Insert(persistSync.Data)
 
 		if err != nil {
-			log.Infoln("insert error ", err, "[sql error ItemLocal]", m.PersistSyncToString(persistSync))
+			log.Infoln("insert error ", err, "[sql error GoodsLocal]", m.PersistSyncToString(persistSync))
 			return
 		}
 
-	case EItemLocalOpUpdate:
+	case EGoodsLocalOpUpdate:
 		cls := persistSync.Data
 		bitSet := persistSync.BitSet
 		if bitSet.IsSetAll() {
-			_, err = session.ID(core.NewPK(cls.Uid, cls.ItemId)).AllCols().Update(cls)
+			_, err = session.ID(core.NewPK(cls.Uid)).AllCols().Update(cls)
 			if err != nil {
-				log.Infoln("update error ", err, "[sql error ItemLocal]", m.PersistSyncToString(persistSync))
+				log.Infoln("update error ", err, "[sql error GoodsLocal]", m.PersistSyncToString(persistSync))
 				return
 			}
 		} else {
 			var nameList []string
-			for idx, name := range ItemLocalDBFiledMap {
-				if bitSet.Get(ItemLocalFieldIndex(idx)) {
+			for idx, name := range GoodsLocalDBFiledMap {
+				if bitSet.Get(GoodsLocalFieldIndex(idx)) {
 					nameList = append(nameList, name)
 				}
 			}
 			if nameList != nil {
-				_, err = session.ID(core.NewPK(cls.Uid, cls.ItemId)).Cols(nameList...).Update(cls)
+				_, err = session.ID(core.NewPK(cls.Uid)).Cols(nameList...).Update(cls)
 				if err != nil {
-					log.Infoln("update error ", err, "[sql error ItemLocal]", m.PersistSyncToString(persistSync))
+					log.Infoln("update error ", err, "[sql error GoodsLocal]", m.PersistSyncToString(persistSync))
 					return
 				}
 			} else {
-				_, err = session.ID(core.NewPK(cls.Uid, cls.ItemId)).AllCols().Update(cls)
+				_, err = session.ID(core.NewPK(cls.Uid)).AllCols().Update(cls)
 				if err != nil {
-					log.Infoln("update error ", err, "[sql error ItemLocal]", m.PersistSyncToString(persistSync))
+					log.Infoln("update error ", err, "[sql error GoodsLocal]", m.PersistSyncToString(persistSync))
 					return
 				}
 			}
 		}
 
-	case EItemLocalOpDelete:
+	case EGoodsLocalOpDelete:
 		cls := persistSync.Data
-		_, err = session.ID(core.NewPK(cls.Uid, cls.ItemId)).Delete(gItemLocalNil)
+		_, err = session.ID(core.NewPK(cls.Uid)).Delete(gGoodsLocalNil)
 		if err != nil {
-			log.Infoln("delete error ", err, "[sql error ItemLocal]", m.PersistSyncToString(persistSync))
+			log.Infoln("delete error ", err, "[sql error GoodsLocal]", m.PersistSyncToString(persistSync))
 			return
 		}
 
-	case EItemLocalOpUnload:
+	case EGoodsLocalOpUnload:
 		cls := persistSync.Data
 		Uid := cls.Uid
 		if value, ok := m.loadUidMap.Load(Uid); ok {
 			state := value
 			// 准备导出,  不中断的清理玩家数据
 			// warning 导出后又修改, 不保证数据一致性
-			if atomic.CompareAndSwapInt32(state, EItemLocalLoadStatePrepareUnloading, EItemLocalLoadStateUnloading) {
+			if atomic.CompareAndSwapInt32(state, EGoodsLocalLoadStatePrepareUnloading, EGoodsLocalLoadStateUnloading) {
 				m.unload(Uid)
 				m.loadUidMap.Delete(Uid)
-				atomic.StoreInt32(state, EItemLocalLoadStateDisk)
+				atomic.StoreInt32(state, EGoodsLocalLoadStateDisk)
 			} else {
 				// 0:导出  1:导入开始  2:导入完成  4:正在导出  不确定状态
 				// 以上状态跳过吧
@@ -1366,8 +1285,8 @@ func (m *ItemLocalManager) SaveDB(session *xorm.Session, persistSync *ItemLocalS
 }
 
 // DataToFailQueue 未写入成功数据, 添加到失败队列
-func (m *ItemLocalManager) DataToFailQueue() {
-	var persistSync *ItemLocalSync
+func (m *GoodsLocalManager) DataToFailQueue() {
+	var persistSync *GoodsLocalSync
 
 	// 一旦失败标记所有的数据都是失败, 不允许导出
 
@@ -1377,17 +1296,17 @@ func (m *ItemLocalManager) DataToFailQueue() {
 	for i := 0; i < len(*m.syncQueue); i++ {
 		persistSync = (*m.syncQueue)[i]
 		switch persistSync.Op {
-		case EItemLocalOpInsert, EItemLocalOpUpdate, EItemLocalOpDelete:
+		case EGoodsLocalOpInsert, EGoodsLocalOpUpdate, EGoodsLocalOpDelete:
 			m.FailQueue = append(m.FailQueue, persistSync)
 
-		case EItemLocalOpUnload:
+		case EGoodsLocalOpUnload:
 			// 导出状态还原
 			cls := persistSync.Data
 			Uid := cls.Uid
 			if value, ok := m.loadUidMap.Load(Uid); ok {
 				state := value
 				// 导出失败状态回退
-				if atomic.CompareAndSwapInt32(state, EItemLocalLoadStatePrepareUnloading, EItemLocalLoadStateMemory) {
+				if atomic.CompareAndSwapInt32(state, EGoodsLocalLoadStatePrepareUnloading, EGoodsLocalLoadStateMemory) {
 				} else {
 				}
 			}
@@ -1399,16 +1318,16 @@ func (m *ItemLocalManager) DataToFailQueue() {
 }
 
 // LoadFile 文件读取写回失败数据
-func (m *ItemLocalManager) LoadFile() error {
-	bombExist := dir.Exists("_./_Users_anniext_project_persist_data/ItemLocal.bomb")
-	tmpExist := dir.Exists("_./_Users_anniext_project_persist_data/ItemLocal.tmp")
+func (m *GoodsLocalManager) LoadFile() error {
+	bombExist := dir.Exists("_./_Users_anniext_project_persist_data/GoodsLocal.bomb")
+	tmpExist := dir.Exists("_./_Users_anniext_project_persist_data/GoodsLocal.tmp")
 
 	if tmpExist {
 		return persistCore.EPersistErrorTempFileExist
 	}
 
 	if bombExist {
-		data, err := ioutil.ReadFile("_./_Users_anniext_project_persist_data/ItemLocal.bomb")
+		data, err := ioutil.ReadFile("_./_Users_anniext_project_persist_data/GoodsLocal.bomb")
 		if err != nil {
 			return err
 		}
@@ -1425,7 +1344,7 @@ func (m *ItemLocalManager) LoadFile() error {
 		session := m.engine.NewSession()
 		defer session.Close()
 
-		var persistSync *ItemLocalSync
+		var persistSync *GoodsLocalSync
 
 		for i := range m.FailQueue {
 			persistSync = m.FailQueue[i]
@@ -1444,7 +1363,7 @@ func (m *ItemLocalManager) LoadFile() error {
 }
 
 // SaveFile 写回失败,记录数据,写文件,等待下次写回
-func (m *ItemLocalManager) SaveFile() {
+func (m *GoodsLocalManager) SaveFile() {
 
 	m.DataToFailQueue()
 
@@ -1453,28 +1372,28 @@ func (m *ItemLocalManager) SaveFile() {
 		log.Infoln("SaveFile marshal error ", err)
 	}
 	_ = os.Mkdir("_./_Users_anniext_project_persist_data", 0770)
-	err = ioutil.WriteFile("_./_Users_anniext_project_persist_data/ItemLocal.tmp", append([]byte("ItemLocal "), data...), 0660)
+	err = ioutil.WriteFile("_./_Users_anniext_project_persist_data/GoodsLocal.tmp", append([]byte("GoodsLocal "), data...), 0660)
 	if err != nil {
 		log.Infoln("SaveFile write temp file error ", err)
 	}
-	err = ioutil.WriteFile("_./_Users_anniext_project_persist_data/ItemLocal.bomb", append([]byte("ItemLocal "), data...), 0660)
+	err = ioutil.WriteFile("_./_Users_anniext_project_persist_data/GoodsLocal.bomb", append([]byte("GoodsLocal "), data...), 0660)
 	if err != nil {
 		log.Infoln("SaveFile write bomb file error ", err)
 	}
-	_ = os.Remove("_./_Users_anniext_project_persist_data/ItemLocal.tmp")
+	_ = os.Remove("_./_Users_anniext_project_persist_data/GoodsLocal.tmp")
 }
 
 // RemoveFile 删除写回失败文件
-func (m *ItemLocalManager) RemoveFile() {
-	_ = os.Remove("_./_Users_anniext_project_persist_data/ItemLocal.tmp")
-	_ = os.Remove("_./_Users_anniext_project_persist_data/ItemLocal.bomb")
+func (m *GoodsLocalManager) RemoveFile() {
+	_ = os.Remove("_./_Users_anniext_project_persist_data/GoodsLocal.tmp")
+	_ = os.Remove("_./_Users_anniext_project_persist_data/GoodsLocal.bomb")
 	_ = os.Remove("_./_Users_anniext_project_persist_data")
 }
 
 // RecoverBomb bomb数据写入数据库
-func (m *ItemLocalManager) RecoverBomb(bomb []byte) (err error) {
-	var persistSync *ItemLocalSync
-	var failQueue []*ItemLocalSync
+func (m *GoodsLocalManager) RecoverBomb(bomb []byte) (err error) {
+	var persistSync *GoodsLocalSync
+	var failQueue []*GoodsLocalSync
 	session := m.engine.NewSession()
 	defer session.Close()
 	err = m.UnmarshalFailQueue(bomb, &failQueue)
@@ -1491,21 +1410,21 @@ func (m *ItemLocalManager) RecoverBomb(bomb []byte) (err error) {
 	}
 	if len(failQueue)-1 > i {
 		data, _ := m.MarshalFailQueue(failQueue[i:])
-		_, _ = os.Stdout.Write([]byte("ItemLocal "))
+		_, _ = os.Stdout.Write([]byte("GoodsLocal "))
 		_, _ = os.Stdout.Write(data)
 	}
 	return
 }
 
 // RecoverTrace trace数据写入数据库
-func (m *ItemLocalManager) RecoverTrace(trace [][]byte) (err error) {
-	var persistSync *ItemLocalSync
-	var traceQueue []*ItemLocalSync
-	var insertQueue []*ItemLocalSync
+func (m *GoodsLocalManager) RecoverTrace(trace [][]byte) (err error) {
+	var persistSync *GoodsLocalSync
+	var traceQueue []*GoodsLocalSync
+	var insertQueue []*GoodsLocalSync
 
 	for i := 0; i < len(trace); i++ {
 		persistSync = m.StringToPersistSync(string(trace[i]))
-		if persistSync.Op == EItemLocalOpInsert {
+		if persistSync.Op == EGoodsLocalOpInsert {
 			insertQueue = append(insertQueue, persistSync)
 		} else {
 			traceQueue = append(traceQueue, persistSync)
@@ -1533,16 +1452,16 @@ func (m *ItemLocalManager) RecoverTrace(trace [][]byte) (err error) {
 }
 
 // MergeQueue 内存中合并操作
-func (m *ItemLocalManager) MergeQueue(q []*ItemLocalSync, copyAll bool) (insertQueue, otherQueue []*ItemLocalSync) {
+func (m *GoodsLocalManager) MergeQueue(q []*GoodsLocalSync, copyAll bool) (insertQueue, otherQueue []*GoodsLocalSync) {
 
-	var currentPersistSync *ItemLocalSync
-	var oldPersistSync *ItemLocalSync
+	var currentPersistSync *GoodsLocalSync
+	var oldPersistSync *GoodsLocalSync
 	var ok bool
 
-	var unloadList []*ItemLocalSync
+	var unloadList []*GoodsLocalSync
 
 	// 合并可能失败, persistSyncMap必须创建副本
-	persistSyncMap := map[ItemLocalUidItemId]*ItemLocalSync{}
+	persistSyncMap := map[GoodsLocalUid]*GoodsLocalSync{}
 
 	//unload 按照顺序强制移到最后
 	//insert update delete 按照主键合并
@@ -1552,68 +1471,66 @@ func (m *ItemLocalManager) MergeQueue(q []*ItemLocalSync, copyAll bool) (insertQ
 LabelForSyncQueue:
 	for i := 0; i < lenSyncQueue; i++ {
 		currentPersistSync = q[i]
-		pk := ItemLocalUidItemId{
+		pk := GoodsLocalUid{
 
 			Uid: currentPersistSync.Data.Uid,
-
-			ItemId: currentPersistSync.Data.ItemId,
 		}
 		// 导出特殊处理
-		if currentPersistSync.Op == EItemLocalOpUnload {
+		if currentPersistSync.Op == EGoodsLocalOpUnload {
 			unloadList = append(unloadList, currentPersistSync)
 			continue
 		}
 		// 第一次出现直接拷贝
 		if oldPersistSync, ok = persistSyncMap[pk]; !ok {
-			persistSyncMap[pk] = &ItemLocalSync{Data: currentPersistSync.Data, Op: currentPersistSync.Op, BitSet: currentPersistSync.BitSet}
+			persistSyncMap[pk] = &GoodsLocalSync{Data: currentPersistSync.Data, Op: currentPersistSync.Op, BitSet: currentPersistSync.BitSet}
 			continue
 		}
 
 		switch oldPersistSync.Op {
-		case EItemLocalOpInsert:
+		case EGoodsLocalOpInsert:
 			switch currentPersistSync.Op {
-			case EItemLocalOpInsert:
+			case EGoodsLocalOpInsert:
 				fail = true
 				break LabelForSyncQueue
-			case EItemLocalOpUpdate:
-				oldPersistSync.Op = EItemLocalOpInsert
+			case EGoodsLocalOpUpdate:
+				oldPersistSync.Op = EGoodsLocalOpInsert
 				if copyAll {
 					oldPersistSync.Data = currentPersistSync.Data
 				} else {
 					m.PersistToPersistByBitSet(oldPersistSync.Data, currentPersistSync.Data, currentPersistSync.BitSet)
 				}
 				oldPersistSync.BitSet.SetAll()
-			case EItemLocalOpDelete:
+			case EGoodsLocalOpDelete:
 				delete(persistSyncMap, pk)
 			}
-		case EItemLocalOpUpdate:
+		case EGoodsLocalOpUpdate:
 			switch currentPersistSync.Op {
-			case EItemLocalOpInsert:
+			case EGoodsLocalOpInsert:
 				fail = true
 				break LabelForSyncQueue
-			case EItemLocalOpUpdate:
-				oldPersistSync.Op = EItemLocalOpUpdate
+			case EGoodsLocalOpUpdate:
+				oldPersistSync.Op = EGoodsLocalOpUpdate
 				if copyAll {
 					oldPersistSync.Data = currentPersistSync.Data
 				} else {
 					m.PersistToPersistByBitSet(oldPersistSync.Data, currentPersistSync.Data, currentPersistSync.BitSet)
 				}
 				oldPersistSync.BitSet.Merge(currentPersistSync.BitSet)
-			case EItemLocalOpDelete:
-				oldPersistSync.Op = EItemLocalOpDelete
+			case EGoodsLocalOpDelete:
+				oldPersistSync.Op = EGoodsLocalOpDelete
 				oldPersistSync.Data = currentPersistSync.Data
 				oldPersistSync.BitSet.ClearAll()
 			}
-		case EItemLocalOpDelete:
+		case EGoodsLocalOpDelete:
 			switch currentPersistSync.Op {
-			case EItemLocalOpInsert:
-				oldPersistSync.Op = EItemLocalOpUpdate
+			case EGoodsLocalOpInsert:
+				oldPersistSync.Op = EGoodsLocalOpUpdate
 				oldPersistSync.Data = currentPersistSync.Data
 				oldPersistSync.BitSet.SetAll()
-			case EItemLocalOpUpdate:
+			case EGoodsLocalOpUpdate:
 				fail = true
 				break LabelForSyncQueue
-			case EItemLocalOpDelete:
+			case EGoodsLocalOpDelete:
 				fail = true
 				break LabelForSyncQueue
 			}
@@ -1629,7 +1546,7 @@ LabelForSyncQueue:
 
 	// 按照合并内容重建队列, 插入特殊处理
 	for _, persistSync := range persistSyncMap {
-		if persistSync.Op == EItemLocalOpInsert {
+		if persistSync.Op == EGoodsLocalOpInsert {
 			insertQueue = append(insertQueue, persistSync)
 		} else {
 			otherQueue = append(otherQueue, persistSync)
@@ -1644,7 +1561,7 @@ LabelForSyncQueue:
 }
 
 // Save 异步写回
-func (m *ItemLocalManager) Save() {
+func (m *GoodsLocalManager) Save() {
 	var exit bool
 	for {
 		// 正常退出
@@ -1656,8 +1573,8 @@ func (m *ItemLocalManager) Save() {
 }
 
 // AsyncSave 异步写回
-func (m *ItemLocalManager) AsyncSave() (exit bool) {
-	var persistSync *ItemLocalSync
+func (m *GoodsLocalManager) AsyncSave() (exit bool) {
+	var persistSync *GoodsLocalSync
 	var err error
 	var queueEmpty bool
 	bTime := time.Now().UnixNano()
@@ -1698,7 +1615,7 @@ func (m *ItemLocalManager) AsyncSave() (exit bool) {
 	log.Infoln("begin incrementalSave", bTime)
 
 	if len(m.FailQueue) > 0 {
-		tmpQueue := make([]*ItemLocalSync, len(m.FailQueue)+len(*m.syncQueue))
+		tmpQueue := make([]*GoodsLocalSync, len(m.FailQueue)+len(*m.syncQueue))
 		copy(tmpQueue, m.FailQueue)
 		copy(tmpQueue[len(m.FailQueue):], *m.syncQueue)
 		insertQueue, otherQueue := m.MergeQueue(tmpQueue, true)
@@ -1734,7 +1651,7 @@ func (m *ItemLocalManager) AsyncSave() (exit bool) {
 		}
 
 		const num = 100
-		var insertArray [num]*protocol.ItemLocal
+		var insertArray [num]*protocol.GoodsLocal
 		length := len(m.InsertQueue)
 		quotient := length / num
 		remainder := length % num
@@ -1754,7 +1671,7 @@ func (m *ItemLocalManager) AsyncSave() (exit bool) {
 		if remainder != 0 {
 			//fmt.Println("queue->(", quotient*num, "-", length, "): ", m.InsertQueue[quotient*num:length])
 
-			insertArray = [num]*protocol.ItemLocal{}
+			insertArray = [num]*protocol.GoodsLocal{}
 			for j := 0; j < remainder; j++ {
 				insertArray[j] = m.InsertQueue[quotient*num+j].Data
 			}
@@ -1803,8 +1720,8 @@ func (m *ItemLocalManager) AsyncSave() (exit bool) {
 }
 
 // Collect 收集数据
-func (m *ItemLocalManager) Collect() {
-	var persistSync *ItemLocalSync
+func (m *GoodsLocalManager) Collect() {
+	var persistSync *GoodsLocalSync
 	var ok bool
 	// 0:normal  1:exit begin, save sync  2:save cache  3:save done
 	var state int8
@@ -1821,18 +1738,18 @@ func (m *ItemLocalManager) Collect() {
 				m.CheckOverload()
 				m.cacheQueue, m.syncQueue = m.syncQueue, m.cacheQueue
 				switch state {
-				case EItemLocalCollectStateNormal:
+				case EGoodsLocalCollectStateNormal:
 					//go m.AsyncSave()
 					m.syncBegin <- true
-				case EItemLocalCollectStateSaveSync:
+				case EGoodsLocalCollectStateSaveSync:
 					//go m.AsyncSave()
 					m.syncBegin <- true
-					state = EItemLocalCollectStateSaveCache
-				case EItemLocalCollectStateSaveCache:
+					state = EGoodsLocalCollectStateSaveCache
+				case EGoodsLocalCollectStateSaveCache:
 					//go m.AsyncSave()
 					m.syncBegin <- true
-					state = EItemLocalCollectStateSaveDone
-				case EItemLocalCollectStateSaveDone:
+					state = EGoodsLocalCollectStateSaveDone
+				case EGoodsLocalCollectStateSaveDone:
 					m.syncBegin <- false
 					<-m.syncEnd
 					m.exitEnd <- true
@@ -1841,7 +1758,7 @@ func (m *ItemLocalManager) Collect() {
 			}
 		case _, ok = <-m.exitBegin:
 			if ok {
-				state = EItemLocalCollectStateSaveSync
+				state = EGoodsLocalCollectStateSaveSync
 			}
 			//default:
 			//	time.Sleep(time.Second/10)
@@ -1850,50 +1767,50 @@ func (m *ItemLocalManager) Collect() {
 }
 
 // Exit 管理类退出
-func (m *ItemLocalManager) Exit(wg *sync.WaitGroup) {
+func (m *GoodsLocalManager) Exit(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	if atomic.LoadInt32(&m.managerState) != EItemLocalManagerStateNormal {
+	if atomic.LoadInt32(&m.managerState) != EGoodsLocalManagerStateNormal {
 		return
 	}
 
 	m.exitBegin <- true
 	<-m.exitEnd
-	atomic.StoreInt32(&m.managerState, EItemLocalManagerStateIdle)
+	atomic.StoreInt32(&m.managerState, EGoodsLocalManagerStateIdle)
 	return
 }
 
 // Sync 数据库表结构同步
-func (m *ItemLocalManager) Sync(wg *sync.WaitGroup) (err error) {
+func (m *GoodsLocalManager) Sync(wg *sync.WaitGroup) (err error) {
 	defer wg.Done()
 
-	err = m.engine.Sync2(gItemLocalNil)
+	err = m.engine.Sync2(gGoodsLocalNil)
 
 	return
 }
 
 // Segmentation 检查是否需要换表 如果需要换表 则根据时间 和切换间隔计算是否需要换表 否则为不处理
-func (m *ItemLocalManager) Segmentation(wg *sync.WaitGroup) (err error) {
+func (m *GoodsLocalManager) Segmentation(wg *sync.WaitGroup) (err error) {
 	defer wg.Done()
 	return
 }
 
 // compareAndUpdate 比较数据库，不相同则更新
-func (m *ItemLocalManager) compareAndUpdate(session *xorm.Session, cls *protocol.ItemLocal, sentryDebug bool) (err error) {
-	update := func(session *xorm.Session, cls *protocol.ItemLocal, memData, dbData string) {
-		log.Infoln("SyncData error. missing mark Mem. [sql error ItemLocal]", memData)
-		log.Infoln("SyncData error. missing mark  Db. [sql error ItemLocal]", dbData)
-		_, err = session.ID(core.NewPK(cls.Uid, cls.ItemId)).AllCols().Update(cls)
+func (m *GoodsLocalManager) compareAndUpdate(session *xorm.Session, cls *protocol.GoodsLocal, sentryDebug bool) (err error) {
+	update := func(session *xorm.Session, cls *protocol.GoodsLocal, memData, dbData string) {
+		log.Infoln("SyncData error. missing mark Mem. [sql error GoodsLocal]", memData)
+		log.Infoln("SyncData error. missing mark  Db. [sql error GoodsLocal]", dbData)
+		_, err = session.ID(core.NewPK(cls.Uid)).AllCols().Update(cls)
 		if err != nil {
-			log.Infoln("SyncData update error.", err, "[sql error ItemLocal]", m.PersistSyncToString(&ItemLocalSync{
+			log.Infoln("SyncData update error.", err, "[sql error GoodsLocal]", m.PersistSyncToString(&GoodsLocalSync{
 				Data:   cls,
-				Op:     EItemLocalOpUpdate,
+				Op:     EGoodsLocalOpUpdate,
 				BitSet: m.bitSetAll,
 			}))
 			return
 		}
 	}
-	resetTimeNSec := func(clsMem, clsDb *protocol.ItemLocal) {
+	resetTimeNSec := func(clsMem, clsDb *protocol.GoodsLocal) {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Infoln("recovered in ", r)
@@ -1919,31 +1836,29 @@ func (m *ItemLocalManager) compareAndUpdate(session *xorm.Session, cls *protocol
 		}
 	}
 
-	dbCls := &protocol.ItemLocal{
+	dbCls := &protocol.GoodsLocal{
 
 		Uid: cls.Uid,
-
-		ItemId: cls.ItemId,
 	}
 	var has bool
 	has, err = session.Get(dbCls)
 	if err != nil || !has {
-		log.Infoln("SyncData query error.", err, "[sql error ItemLocal]", m.PersistSyncToString(&ItemLocalSync{
+		log.Infoln("SyncData query error.", err, "[sql error GoodsLocal]", m.PersistSyncToString(&GoodsLocalSync{
 			Data:   cls,
 			Op:     0,
 			BitSet: m.bitSetAll,
 		}))
 		return
 	}
-	memCls := m.GetItemLocalByUidItemId(cls.Uid, cls.ItemId)
+	memCls := m.GetGoodsLocalByUid(cls.Uid)
 	if memCls != nil {
 		resetTimeNSec(memCls, dbCls)
-		memData := m.PersistSyncToString(&ItemLocalSync{
+		memData := m.PersistSyncToString(&GoodsLocalSync{
 			Data:   memCls,
 			Op:     0,
 			BitSet: m.bitSetAll,
 		})
-		dbData := m.PersistSyncToString(&ItemLocalSync{
+		dbData := m.PersistSyncToString(&GoodsLocalSync{
 			Data:   dbCls,
 			Op:     0,
 			BitSet: m.bitSetAll,
@@ -1953,20 +1868,20 @@ func (m *ItemLocalManager) compareAndUpdate(session *xorm.Session, cls *protocol
 			if sentryDebug {
 				func() {
 					defer func() {
-						memClsJson, _ := json.Marshal(&ItemLocalSync{
+						memClsJson, _ := json.Marshal(&GoodsLocalSync{
 							Data:   memCls,
 							Op:     0,
 							BitSet: m.bitSetAll,
 						})
-						dbClsJson, _ := json.Marshal(&ItemLocalSync{
+						dbClsJson, _ := json.Marshal(&GoodsLocalSync{
 							Data:   dbCls,
 							Op:     0,
 							BitSet: m.bitSetAll,
 						})
 						sentry.WithScope(func(scope *sentry.Scope) {
-							tag := "CompareError" + "ItemLocal"
-							scope.SetTag(tag, "ItemLocal")
-							scope.SetTag("transaction", "ItemLocal")
+							tag := "CompareError" + "GoodsLocal"
+							scope.SetTag(tag, "GoodsLocal")
+							scope.SetTag("transaction", "GoodsLocal")
 							scope.SetExtra("memClsJson", string(memClsJson))
 							scope.SetExtra("dbClsJson", string(dbClsJson))
 							sentry.CaptureMessage(tag)
@@ -1981,7 +1896,7 @@ func (m *ItemLocalManager) compareAndUpdate(session *xorm.Session, cls *protocol
 }
 
 // SyncData 全部内存数据写入数据库, 本接口耗时长,仅用于停服后.  补救没有标记写回数据(只处理未标记数据,New Delete不存在漏写)
-func (m *ItemLocalManager) SyncData(wg *sync.WaitGroup, sentryDebug bool) (err error) {
+func (m *GoodsLocalManager) SyncData(wg *sync.WaitGroup, sentryDebug bool) (err error) {
 	defer wg.Done()
 
 	session := m.engine.NewSession()
@@ -1998,9 +1913,9 @@ func (m *ItemLocalManager) SyncData(wg *sync.WaitGroup, sentryDebug bool) (err e
 				}
 				if err != nil {
 					sentry.WithScope(func(scope *sentry.Scope) {
-						tagtag := "SyncDataError" + "ItemLocal"
-						scope.SetTag("SyncDataError", "ItemLocal")
-						scope.SetTag("transaction", "ItemLocal")
+						tagtag := "SyncDataError" + "GoodsLocal"
+						scope.SetTag("SyncDataError", "GoodsLocal")
+						scope.SetTag("transaction", "GoodsLocal")
 						scope.SetExtra(err.Error(), 1)
 						sentry.CaptureMessage(tagtag)
 					})
@@ -2021,10 +1936,10 @@ func (m *ItemLocalManager) SyncData(wg *sync.WaitGroup, sentryDebug bool) (err e
 
 // SyncUserData 用户内存和数据库数据比较并更新, 不允许并发， 用于数据导出时，补救没有标记写回数据(只处理未标记数据,New Delete不存在漏写)
 // sentryDebug debug模式下启用sentry
-func (m *ItemLocalManager) SyncUserData(Uid int32, sentryDebug bool) (err error) {
+func (m *GoodsLocalManager) SyncUserData(Uid int32, sentryDebug bool) (err error) {
 	session := m.engine.NewSession()
 	defer session.Close()
-	var clsList []*protocol.ItemLocal
+	var clsList []*protocol.GoodsLocal
 
 	// 业务代码必须保证，不使用正在导出的数据， 否则可能引发崩溃
 	func() {
@@ -2036,7 +1951,8 @@ func (m *ItemLocalManager) SyncUserData(Uid int32, sentryDebug bool) (err error)
 			}
 		}()
 
-		for _, cls := range m.GetItemLocalsByUid(Uid) {
+		cls := m.GetGoodsLocalByUid(Uid)
+		if cls != nil {
 			clsList = append(clsList, m.acquireDeepCopyObject(cls))
 		}
 
@@ -2053,9 +1969,9 @@ func (m *ItemLocalManager) SyncUserData(Uid int32, sentryDebug bool) (err error)
 				defer func() {
 					if err != nil {
 						sentry.WithScope(func(scope *sentry.Scope) {
-							tagtag := "SyncDataError" + "ItemLocal"
-							scope.SetTag("SyncDataError", "ItemLocal")
-							scope.SetTag("transaction", "ItemLocal")
+							tagtag := "SyncDataError" + "GoodsLocal"
+							scope.SetTag("SyncDataError", "GoodsLocal")
+							scope.SetTag("transaction", "GoodsLocal")
 							scope.SetExtra(err.Error(), 1)
 							sentry.CaptureMessage(tagtag)
 						})

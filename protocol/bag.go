@@ -7,6 +7,12 @@ type ItemLocal struct {
 	ItemTime int64 `xorm:""`
 }
 
+type GoodsLocal struct {
+	Uid  int32  `xorm:"pk" hash:"group=1;unique=1"`
+	Time int64  `xorm:""`
+	Name string `xorm:""`
+}
+
 func (src *ItemLocal) CopyTo(dst *ItemLocal) {
 	*dst = *src
 }

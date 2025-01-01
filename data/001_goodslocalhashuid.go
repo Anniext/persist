@@ -40,7 +40,7 @@ import (
 // and [Map.CompareAndDelete] is a write operation when it returns deleted set to true.
 //
 // [the Go memory model]: https://go.dev/ref/mem
-type ItemLocalHashUidItemId struct {
+type GoodsLocalHashUid struct {
 	mu sync.Mutex
 
 	// read contains the portion of the map's contents that are safe for
@@ -52,7 +52,7 @@ type ItemLocalHashUidItemId struct {
 	// Entries stored in read may be updated concurrently without mu, but updating
 	// a previously-expunged entry requires that the entry be copied to the dirty
 	// map and unexpunged with mu held.
-	read atomic.Pointer[readOnlyItemLocalHashUidItemId]
+	read atomic.Pointer[readOnlyGoodsLocalHashUid]
 
 	// dirty contains the portion of the map's contents that require mu to be
 	// held. To ensure that the dirty map can be promoted to the read map quickly,
@@ -64,7 +64,7 @@ type ItemLocalHashUidItemId struct {
 	//
 	// If the dirty map is nil, the next write to the map will initialize it by
 	// making a shallow copy of the clean map, omitting stale entries.
-	dirty map[ItemLocalKeyTypeHashUidItemId]*entryItemLocalHashUidItemId
+	dirty map[GoodsLocalKeyTypeHashUid]*entryGoodsLocalHashUid
 
 	// misses counts the number of loads since the read map was last updated that
 	// needed to lock mu to determine whether the key was present.
@@ -76,17 +76,17 @@ type ItemLocalHashUidItemId struct {
 }
 
 // readOnly is an immutable struct stored atomically in the Map.read field.
-type readOnlyItemLocalHashUidItemId struct {
-	m       map[ItemLocalKeyTypeHashUidItemId]*entryItemLocalHashUidItemId
+type readOnlyGoodsLocalHashUid struct {
+	m       map[GoodsLocalKeyTypeHashUid]*entryGoodsLocalHashUid
 	amended bool // true if the dirty map contains some key not in m.
 }
 
 // expunged is an arbitrary pointer that marks entries which have been deleted
 // from the dirty map.
-var expungedItemLocalHashUidItemId = new(*protocol.ItemLocal)
+var expungedGoodsLocalHashUid = new(*protocol.GoodsLocal)
 
 // An entry is a slot in the map corresponding to a particular key.
-type entryItemLocalHashUidItemId struct {
+type entryGoodsLocalHashUid struct {
 	// p points to the interface{} value stored for the entry.
 	//
 	// If p == nil, the entry has been deleted, and either m.dirty == nil or
@@ -106,26 +106,26 @@ type entryItemLocalHashUidItemId struct {
 	// p != expunged. If p == expunged, an entry's associated value can be updated
 	// only after first setting m.dirty[key] = e so that lookups using the dirty
 	// map find the entry.
-	p atomic.Pointer[*protocol.ItemLocal]
+	p atomic.Pointer[*protocol.GoodsLocal]
 }
 
-func newEntryItemLocalHashUidItemId(i *protocol.ItemLocal) *entryItemLocalHashUidItemId {
-	e := &entryItemLocalHashUidItemId{}
+func newEntryGoodsLocalHashUid(i *protocol.GoodsLocal) *entryGoodsLocalHashUid {
+	e := &entryGoodsLocalHashUid{}
 	e.p.Store(&i)
 	return e
 }
 
-func (m *ItemLocalHashUidItemId) loadReadOnly() readOnlyItemLocalHashUidItemId {
+func (m *GoodsLocalHashUid) loadReadOnly() readOnlyGoodsLocalHashUid {
 	if p := m.read.Load(); p != nil {
 		return *p
 	}
-	return readOnlyItemLocalHashUidItemId{}
+	return readOnlyGoodsLocalHashUid{}
 }
 
 // Load returns the value stored in the map for a key, or nil if no
 // value is present.
 // The ok result indicates whether value was found in the map.
-func (m *ItemLocalHashUidItemId) Load(key ItemLocalKeyTypeHashUidItemId) (value *protocol.ItemLocal, ok bool) {
+func (m *GoodsLocalHashUid) Load(key GoodsLocalKeyTypeHashUid) (value *protocol.GoodsLocal, ok bool) {
 	read := m.loadReadOnly()
 	e, ok := read.m[key]
 	if !ok && read.amended {
@@ -150,21 +150,21 @@ func (m *ItemLocalHashUidItemId) Load(key ItemLocalKeyTypeHashUidItemId) (value 
 	return e.load()
 }
 
-func (e *entryItemLocalHashUidItemId) load() (value *protocol.ItemLocal, ok bool) {
+func (e *entryGoodsLocalHashUid) load() (value *protocol.GoodsLocal, ok bool) {
 	p := e.p.Load()
-	if p == nil || p == expungedItemLocalHashUidItemId {
+	if p == nil || p == expungedGoodsLocalHashUid {
 		return value, false
 	}
 	return *p, true
 }
 
 // Store sets the value for a key.
-func (m *ItemLocalHashUidItemId) Store(key ItemLocalKeyTypeHashUidItemId, value *protocol.ItemLocal) {
+func (m *GoodsLocalHashUid) Store(key GoodsLocalKeyTypeHashUid, value *protocol.GoodsLocal) {
 	_, _ = m.Swap(key, value)
 }
 
 // Clear deletes all the entries, resulting in an empty Map.
-func (m *ItemLocalHashUidItemId) Clear() {
+func (m *GoodsLocalHashUid) Clear() {
 	read := m.loadReadOnly()
 	if len(read.m) == 0 && !read.amended {
 		// Avoid allocating a new readOnly when the map is already clear.
@@ -176,7 +176,7 @@ func (m *ItemLocalHashUidItemId) Clear() {
 
 	read = m.loadReadOnly()
 	if len(read.m) > 0 || read.amended {
-		m.read.Store(&readOnlyItemLocalHashUidItemId{})
+		m.read.Store(&readOnlyGoodsLocalHashUid{})
 	}
 
 	clear(m.dirty)
@@ -190,9 +190,9 @@ func (m *ItemLocalHashUidItemId) Clear() {
 //
 // If the entry is expunged, tryCompareAndSwap returns false and leaves
 // the entry unchanged.
-func (e *entryItemLocalHashUidItemId) tryCompareAndSwap(old, new *protocol.ItemLocal) bool {
+func (e *entryGoodsLocalHashUid) tryCompareAndSwap(old, new *protocol.GoodsLocal) bool {
 	p := e.p.Load()
-	if p == nil || p == expungedItemLocalHashUidItemId || *p != old {
+	if p == nil || p == expungedGoodsLocalHashUid || *p != old {
 		return false
 	}
 
@@ -205,7 +205,7 @@ func (e *entryItemLocalHashUidItemId) tryCompareAndSwap(old, new *protocol.ItemL
 			return true
 		}
 		p = e.p.Load()
-		if p == nil || p == expungedItemLocalHashUidItemId || *p != old {
+		if p == nil || p == expungedGoodsLocalHashUid || *p != old {
 			return false
 		}
 	}
@@ -215,21 +215,21 @@ func (e *entryItemLocalHashUidItemId) tryCompareAndSwap(old, new *protocol.ItemL
 //
 // If the entry was previously expunged, it must be added to the dirty map
 // before m.mu is unlocked.
-func (e *entryItemLocalHashUidItemId) unexpungeLocked() (wasExpunged bool) {
-	return e.p.CompareAndSwap(expungedItemLocalHashUidItemId, nil)
+func (e *entryGoodsLocalHashUid) unexpungeLocked() (wasExpunged bool) {
+	return e.p.CompareAndSwap(expungedGoodsLocalHashUid, nil)
 }
 
 // swapLocked unconditionally swaps a value into the entry.
 //
 // The entry must be known not to be expunged.
-func (e *entryItemLocalHashUidItemId) swapLocked(i **protocol.ItemLocal) **protocol.ItemLocal {
+func (e *entryGoodsLocalHashUid) swapLocked(i **protocol.GoodsLocal) **protocol.GoodsLocal {
 	return e.p.Swap(i)
 }
 
 // LoadOrStore returns the existing value for the key if present.
 // Otherwise, it stores and returns the given value.
 // The loaded result is true if the value was loaded, false if stored.
-func (m *ItemLocalHashUidItemId) LoadOrStore(key ItemLocalKeyTypeHashUidItemId, value *protocol.ItemLocal) (actual *protocol.ItemLocal, loaded bool) {
+func (m *GoodsLocalHashUid) LoadOrStore(key GoodsLocalKeyTypeHashUid, value *protocol.GoodsLocal) (actual *protocol.GoodsLocal, loaded bool) {
 	// Avoid locking if it's a clean hit.
 	read := m.loadReadOnly()
 	if e, ok := read.m[key]; ok {
@@ -254,9 +254,9 @@ func (m *ItemLocalHashUidItemId) LoadOrStore(key ItemLocalKeyTypeHashUidItemId, 
 			// We're adding the first new key to the dirty map.
 			// Make sure it is allocated and mark the read-only map as incomplete.
 			m.dirtyLocked()
-			m.read.Store(&readOnlyItemLocalHashUidItemId{m: read.m, amended: true})
+			m.read.Store(&readOnlyGoodsLocalHashUid{m: read.m, amended: true})
 		}
-		m.dirty[key] = newEntryItemLocalHashUidItemId(value)
+		m.dirty[key] = newEntryGoodsLocalHashUid(value)
 		actual, loaded = value, false
 	}
 	m.mu.Unlock()
@@ -269,9 +269,9 @@ func (m *ItemLocalHashUidItemId) LoadOrStore(key ItemLocalKeyTypeHashUidItemId, 
 //
 // If the entry is expunged, tryLoadOrStore leaves the entry unchanged and
 // returns with ok==false.
-func (e *entryItemLocalHashUidItemId) tryLoadOrStore(i *protocol.ItemLocal) (actual *protocol.ItemLocal, loaded, ok bool) {
+func (e *entryGoodsLocalHashUid) tryLoadOrStore(i *protocol.GoodsLocal) (actual *protocol.GoodsLocal, loaded, ok bool) {
 	p := e.p.Load()
-	if p == expungedItemLocalHashUidItemId {
+	if p == expungedGoodsLocalHashUid {
 		return actual, false, false
 	}
 	if p != nil {
@@ -287,7 +287,7 @@ func (e *entryItemLocalHashUidItemId) tryLoadOrStore(i *protocol.ItemLocal) (act
 			return i, false, true
 		}
 		p = e.p.Load()
-		if p == expungedItemLocalHashUidItemId {
+		if p == expungedGoodsLocalHashUid {
 			return actual, false, false
 		}
 		if p != nil {
@@ -298,7 +298,7 @@ func (e *entryItemLocalHashUidItemId) tryLoadOrStore(i *protocol.ItemLocal) (act
 
 // LoadAndDelete deletes the value for a key, returning the previous value if any.
 // The loaded result reports whether the key was present.
-func (m *ItemLocalHashUidItemId) LoadAndDelete(key ItemLocalKeyTypeHashUidItemId) (value *protocol.ItemLocal, loaded bool) {
+func (m *GoodsLocalHashUid) LoadAndDelete(key GoodsLocalKeyTypeHashUid) (value *protocol.GoodsLocal, loaded bool) {
 	read := m.loadReadOnly()
 	e, ok := read.m[key]
 	if !ok && read.amended {
@@ -322,14 +322,14 @@ func (m *ItemLocalHashUidItemId) LoadAndDelete(key ItemLocalKeyTypeHashUidItemId
 }
 
 // Delete deletes the value for a key.
-func (m *ItemLocalHashUidItemId) Delete(key ItemLocalKeyTypeHashUidItemId) {
+func (m *GoodsLocalHashUid) Delete(key GoodsLocalKeyTypeHashUid) {
 	m.LoadAndDelete(key)
 }
 
-func (e *entryItemLocalHashUidItemId) delete() (value *protocol.ItemLocal, ok bool) {
+func (e *entryGoodsLocalHashUid) delete() (value *protocol.GoodsLocal, ok bool) {
 	for {
 		p := e.p.Load()
-		if p == nil || p == expungedItemLocalHashUidItemId {
+		if p == nil || p == expungedGoodsLocalHashUid {
 			return value, false
 		}
 		if e.p.CompareAndSwap(p, nil) {
@@ -342,10 +342,10 @@ func (e *entryItemLocalHashUidItemId) delete() (value *protocol.ItemLocal, ok bo
 //
 // If the entry is expunged, trySwap returns false and leaves the entry
 // unchanged.
-func (e *entryItemLocalHashUidItemId) trySwap(i **protocol.ItemLocal) (**protocol.ItemLocal, bool) {
+func (e *entryGoodsLocalHashUid) trySwap(i **protocol.GoodsLocal) (**protocol.GoodsLocal, bool) {
 	for {
 		p := e.p.Load()
-		if p == expungedItemLocalHashUidItemId {
+		if p == expungedGoodsLocalHashUid {
 			return nil, false
 		}
 		if e.p.CompareAndSwap(p, i) {
@@ -356,7 +356,7 @@ func (e *entryItemLocalHashUidItemId) trySwap(i **protocol.ItemLocal) (**protoco
 
 // Swap swaps the value for a key and returns the previous value if any.
 // The loaded result reports whether the key was present.
-func (m *ItemLocalHashUidItemId) Swap(key ItemLocalKeyTypeHashUidItemId, value *protocol.ItemLocal) (previous *protocol.ItemLocal, loaded bool) {
+func (m *GoodsLocalHashUid) Swap(key GoodsLocalKeyTypeHashUid, value *protocol.GoodsLocal) (previous *protocol.GoodsLocal, loaded bool) {
 	read := m.loadReadOnly()
 	if e, ok := read.m[key]; ok {
 		if v, ok := e.trySwap(&value); ok {
@@ -389,9 +389,9 @@ func (m *ItemLocalHashUidItemId) Swap(key ItemLocalKeyTypeHashUidItemId, value *
 			// We're adding the first new key to the dirty map.
 			// Make sure it is allocated and mark the read-only map as incomplete.
 			m.dirtyLocked()
-			m.read.Store(&readOnlyItemLocalHashUidItemId{m: read.m, amended: true})
+			m.read.Store(&readOnlyGoodsLocalHashUid{m: read.m, amended: true})
 		}
-		m.dirty[key] = newEntryItemLocalHashUidItemId(value)
+		m.dirty[key] = newEntryGoodsLocalHashUid(value)
 	}
 	m.mu.Unlock()
 	return previous, loaded
@@ -400,7 +400,7 @@ func (m *ItemLocalHashUidItemId) Swap(key ItemLocalKeyTypeHashUidItemId, value *
 // CompareAndSwap swaps the old and new values for key
 // if the value stored in the map is equal to old.
 // The old value must be of a comparable type.
-func (m *ItemLocalHashUidItemId) CompareAndSwap(key ItemLocalKeyTypeHashUidItemId, old, new *protocol.ItemLocal) (swapped bool) {
+func (m *GoodsLocalHashUid) CompareAndSwap(key GoodsLocalKeyTypeHashUid, old, new *protocol.GoodsLocal) (swapped bool) {
 	read := m.loadReadOnly()
 	if e, ok := read.m[key]; ok {
 		return e.tryCompareAndSwap(old, new)
@@ -432,7 +432,7 @@ func (m *ItemLocalHashUidItemId) CompareAndSwap(key ItemLocalKeyTypeHashUidItemI
 //
 // If there is no current value for key in the map, CompareAndDelete
 // returns false (even if the old value is the nil interface value).
-func (m *ItemLocalHashUidItemId) CompareAndDelete(key ItemLocalKeyTypeHashUidItemId, old *protocol.ItemLocal) (deleted bool) {
+func (m *GoodsLocalHashUid) CompareAndDelete(key GoodsLocalKeyTypeHashUid, old *protocol.GoodsLocal) (deleted bool) {
 	read := m.loadReadOnly()
 	e, ok := read.m[key]
 	if !ok && read.amended {
@@ -454,7 +454,7 @@ func (m *ItemLocalHashUidItemId) CompareAndDelete(key ItemLocalKeyTypeHashUidIte
 	}
 	for ok {
 		p := e.p.Load()
-		if p == nil || p == expungedItemLocalHashUidItemId || *p != old {
+		if p == nil || p == expungedGoodsLocalHashUid || *p != old {
 			return false
 		}
 		if e.p.CompareAndSwap(p, nil) {
@@ -475,7 +475,7 @@ func (m *ItemLocalHashUidItemId) CompareAndDelete(key ItemLocalKeyTypeHashUidIte
 //
 // Range may be O(N) with the number of elements in the map even if f returns
 // false after a constant number of calls.
-func (m *ItemLocalHashUidItemId) Range(f func(key ItemLocalKeyTypeHashUidItemId, value *protocol.ItemLocal) bool) {
+func (m *GoodsLocalHashUid) Range(f func(key GoodsLocalKeyTypeHashUid, value *protocol.GoodsLocal) bool) {
 	// We need to be able to iterate over all of the keys that were already
 	// present at the start of the call to Range.
 	// If read.amended is false, then read.m satisfies that property without
@@ -489,7 +489,7 @@ func (m *ItemLocalHashUidItemId) Range(f func(key ItemLocalKeyTypeHashUidItemId,
 		m.mu.Lock()
 		read = m.loadReadOnly()
 		if read.amended {
-			read = readOnlyItemLocalHashUidItemId{m: m.dirty}
+			read = readOnlyGoodsLocalHashUid{m: m.dirty}
 			copyRead := read
 			m.read.Store(&copyRead)
 			m.dirty = nil
@@ -509,23 +509,23 @@ func (m *ItemLocalHashUidItemId) Range(f func(key ItemLocalKeyTypeHashUidItemId,
 	}
 }
 
-func (m *ItemLocalHashUidItemId) missLocked() {
+func (m *GoodsLocalHashUid) missLocked() {
 	m.misses++
 	if m.misses < len(m.dirty) {
 		return
 	}
-	m.read.Store(&readOnlyItemLocalHashUidItemId{m: m.dirty})
+	m.read.Store(&readOnlyGoodsLocalHashUid{m: m.dirty})
 	m.dirty = nil
 	m.misses = 0
 }
 
-func (m *ItemLocalHashUidItemId) dirtyLocked() {
+func (m *GoodsLocalHashUid) dirtyLocked() {
 	if m.dirty != nil {
 		return
 	}
 
 	read := m.loadReadOnly()
-	m.dirty = make(map[ItemLocalKeyTypeHashUidItemId]*entryItemLocalHashUidItemId, len(read.m))
+	m.dirty = make(map[GoodsLocalKeyTypeHashUid]*entryGoodsLocalHashUid, len(read.m))
 	for k, e := range read.m {
 		if !e.tryExpungeLocked() {
 			m.dirty[k] = e
@@ -533,13 +533,13 @@ func (m *ItemLocalHashUidItemId) dirtyLocked() {
 	}
 }
 
-func (e *entryItemLocalHashUidItemId) tryExpungeLocked() (isExpunged bool) {
+func (e *entryGoodsLocalHashUid) tryExpungeLocked() (isExpunged bool) {
 	p := e.p.Load()
 	for p == nil {
-		if e.p.CompareAndSwap(nil, expungedItemLocalHashUidItemId) {
+		if e.p.CompareAndSwap(nil, expungedGoodsLocalHashUid) {
 			return true
 		}
 		p = e.p.Load()
 	}
-	return p == expungedItemLocalHashUidItemId
+	return p == expungedGoodsLocalHashUid
 }

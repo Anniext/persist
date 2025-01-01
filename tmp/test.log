@@ -1,0 +1,27 @@
+{"level":"error","ts":"2025-01-01 13:59:32.379","caller":"log/level.go:8","msg":"[persist: not in memory]"}
+{"level":"error","ts":"2025-01-01 13:59:39.606","caller":"log/level.go:8","msg":"[persist: not in memory]"}
+{"level":"error","ts":"2025-01-01 14:01:46.906","caller":"log/level.go:8","msg":"[persist: not in memory]"}
+{"level":"error","ts":"2025-01-01 14:02:07.192","caller":"log/level.go:8","msg":"[persist: not in memory]"}
+{"level":"error","ts":"2025-01-01 14:04:44.386","caller":"log/level.go:8","msg":"[persist: not in memory]"}
+{"level":"info","ts":"2025-01-01 14:04:53.297","caller":"log/level.go:55","msg":"[ItemLocalManager LoadAll begin]"}
+{"level":"info","ts":"2025-01-01 14:04:53.309","caller":"log/level.go:55","msg":"[ItemLocalManager LoadAll end]"}
+{"level":"info","ts":"2025-01-01 14:04:53.309","caller":"log/level.go:55","msg":"[[sql trace ItemLocal] gAEAAACAAQAAAIACAAAAAAAAAIADAAAAAAAAAAH//////////w==]"}
+{"level":"info","ts":"2025-01-01 14:05:39.165","caller":"log/level.go:55","msg":"[ItemLocalManager LoadAll begin]"}
+{"level":"info","ts":"2025-01-01 14:05:39.166","caller":"log/level.go:55","msg":"[ItemLocalManager LoadAll end]"}
+{"level":"info","ts":"2025-01-01 14:05:39.166","caller":"log/level.go:55","msg":"[[sql trace ItemLocal] gAEAAACAAQAAAIACAAAAAAAAAIADAAAAAAAAAAH//////////w==]"}
+{"level":"info","ts":"2025-01-01 14:06:39.117","caller":"log/level.go:55","msg":"[ItemLocalManager LoadAll begin]"}
+{"level":"info","ts":"2025-01-01 14:06:39.118","caller":"log/level.go:55","msg":"[ItemLocalManager LoadAll end]"}
+{"level":"info","ts":"2025-01-01 14:06:39.118","caller":"log/level.go:55","msg":"[[sql trace ItemLocal] gAEAAACAAQAAAIACAAAAAAAAAIADAAAAAAAAAAH//////////w==]"}
+{"level":"info","ts":"2025-01-01 14:06:39.217","caller":"log/level.go:55","msg":"[begin incrementalSave 1735711599217705000]"}
+{"level":"info","ts":"2025-01-01 14:06:39.260","caller":"log/level.go:55","msg":"[save success: incrementalSave]"}
+{"level":"info","ts":"2025-01-01 14:09:42.464","caller":"log/level.go:55","msg":"[GoodsLocalManager LoadAll begin]"}
+{"level":"info","ts":"2025-01-01 14:09:42.467","caller":"log/level.go:55","msg":"[GoodsLocalManager LoadAll end]"}
+{"level":"info","ts":"2025-01-01 14:09:42.468","caller":"log/level.go:55","msg":"[[sql trace GoodsLocal] gAAAAACAAAAAAAAAAACAAwAAAHNzcwH//////////w==]"}
+{"level":"info","ts":"2025-01-01 14:09:42.565","caller":"log/level.go:55","msg":"[begin incrementalSave 1735711782565470000]"}
+{"level":"info","ts":"2025-01-01 14:09:42.597","caller":"log/level.go:55","msg":"[save success: incrementalSave]"}
+{"level":"info","ts":"2025-01-01 14:10:37.380","caller":"log/level.go:55","msg":"[GoodsLocalManager LoadAll begin]"}
+{"level":"info","ts":"2025-01-01 14:10:37.381","caller":"log/level.go:55","msg":"[GoodsLocalManager LoadAll end]"}
+{"level":"info","ts":"2025-01-01 14:10:37.381","caller":"log/level.go:55","msg":"[[sql trace GoodsLocal] gAEAAACAAAAAAAAAAACAAwAAAHNzcwH//////////w==]"}
+{"level":"info","ts":"2025-01-01 14:10:37.381","caller":"log/level.go:12","msg":"[sss]"}
+{"level":"info","ts":"2025-01-01 14:10:37.481","caller":"log/level.go:55","msg":"[begin incrementalSave 1735711837481685000]"}
+{"level":"info","ts":"2025-01-01 14:10:37.530","caller":"log/level.go:55","msg":"[save success: incrementalSave]"}

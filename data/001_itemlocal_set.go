@@ -7,9 +7,10 @@
 package data
 
 import (
-	"protocol"
 	"sync"
 	"sync/atomic"
+
+	"anniext.asia/xt/persist/protocol"
 )
 
 // Map is like a Go map[any]any but is safe for concurrent use

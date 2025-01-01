@@ -1,7 +1,10 @@
-package test
+package main
 
 import (
+	"anniext.asia/xt/persist/data"
+	"anniext.asia/xt/persist/protocol"
 	"anniext.asia/xt/utils/log"
+	"time"
 )
 
 func main() {
@@ -17,5 +20,28 @@ func main() {
 
 	log.NewSlogCore(slogConfig)
 
-	log.Error("test")
+	err := data.Init()
+	if err != nil {
+		log.Panic(err.Error())
+	}
+	err = data.Run()
+	if err != nil {
+		log.Panic(err.Error())
+
+	}
+	data.GGoodsLocalManager.LoadAll()
+
+	data.GGoodsLocalManager.NewGoodsLocal(&protocol.GoodsLocal{
+		Uid:  1,
+		Time: 0,
+		Name: "sss",
+	})
+	if err != nil {
+		log.Error(err)
+	}
+
+	uid := data.GGoodsLocalManager.GetGoodsLocalByUid(1)
+
+	log.Info(uid.Name)
+	time.Sleep(time.Second * 10)
 }
