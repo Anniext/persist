@@ -3,6 +3,7 @@ package main
 import (
 	tpl "anniext.asia/xt/persist/template"
 	"anniext.asia/xt/persist/util"
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -194,6 +195,34 @@ func findFirstFromRight(s, src string) int {
 	return -1
 }
 
+func getModuleFromGoMod() (string, error) {
+	goModFile := "go.mod"
+
+	file, err := os.Open(goModFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to open go.mod: %w", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "module") {
+			parts := strings.Fields(line)
+			if len(parts) > 1 {
+				return parts[1], nil
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("error while reading go.mod: %w", err)
+	}
+
+	return "", fmt.Errorf("module declaration not found in go.mod")
+}
+
 func main() {
 	var err error
 	var dir, goFile, goPackage, tableName string
@@ -210,10 +239,16 @@ func main() {
 	goFile = os.Getenv("GOFILE")
 	goPackage = os.Getenv("GOPACKAGE")
 
+	modulePath, err := getModuleFromGoMod()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	if *srcDir == "" {
 		*srcDir = dir
 	} else {
-		persistPkgPath = "anniext.asia/xt/persist/" + *srcDir
+		persistPkgPath = modulePath + "/" + *srcDir
 		persistPkgName = persistPkgPath[strings.LastIndex(persistPkgPath, "/")+1:]
 		if !path.IsAbs(*srcDir) {
 			*srcDir = path.Join(dir, *srcDir)

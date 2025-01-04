@@ -25,3 +25,7 @@
 {"level":"info","ts":"2025-01-01 14:10:37.381","caller":"log/level.go:12","msg":"[sss]"}
 {"level":"info","ts":"2025-01-01 14:10:37.481","caller":"log/level.go:55","msg":"[begin incrementalSave 1735711837481685000]"}
 {"level":"info","ts":"2025-01-01 14:10:37.530","caller":"log/level.go:55","msg":"[save success: incrementalSave]"}
+{"level":"info","ts":"2025-01-04 14:28:14.772","caller":"log/level.go:55","msg":"[[sql trace ItemLocal] gAEAAACAAgAAAIADAAAAAAAAAIAEAAAAAAAAAAH//////////w==]"}
+{"level":"info","ts":"2025-01-04 14:28:14.773","caller":"log/level.go:12","msg":"[2]"}
+{"level":"info","ts":"2025-01-04 14:28:14.873","caller":"log/level.go:55","msg":"[begin incrementalSave 1735972094873609624]"}
+{"level":"info","ts":"2025-01-04 14:28:15.179","caller":"log/level.go:55","msg":"[save success: incrementalSave]"}

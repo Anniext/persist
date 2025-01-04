@@ -3,12 +3,13 @@ module anniext.asia/xt/persist
 go 1.23.4
 
 require (
-	anniext.asia/xt/utils v0.0.0-20241228051454-c925bb59a2cb
+	anniext.asia/xt/utils v1.0.0
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/fatih/structtag v1.2.0
 	github.com/getsentry/sentry-go v0.30.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/json-iterator/go v1.1.12
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	xorm.io/core v0.7.3
 	xorm.io/xorm v1.3.9
 )
@@ -21,6 +22,7 @@ require (
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/huandu/go-sqlbuilder v1.33.1 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
@@ -34,6 +36,5 @@ require (
 	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	xorm.io/builder v0.3.11-0.20220531020008-1bd24a7dc978 // indirect
 )

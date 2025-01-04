@@ -2,8 +2,11 @@ package data
 
 import (
 	"anniext.asia/xt/persist/core"
+	"anniext.asia/xt/utils/log"
+	"anniext.asia/xt/utils/xormhook"
 	_ "github.com/go-sql-driver/mysql"
-	"log"
+	"gopkg.in/natefinch/lumberjack.v2"
+	"io"
 	"sync"
 	"time"
 	"xorm.io/xorm"
@@ -20,16 +23,22 @@ var engineOnce sync.Once
 func GetDB() *xorm.Engine {
 	engineOnce.Do(func() {
 		var err error
-		gEngine, err = xorm.NewEngine("mysql", "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8mb4&interpolateParams=true")
+		gEngine, err = xorm.NewEngine("mysql", "root:123456@tcp(10.0.0.3:3306)/test?charset=utf8mb4&interpolateParams=true")
 		if err != nil {
 			gEngine = nil
-			log.Println("GetDB error", err)
+			log.Info("GetDB error", err)
 		} else {
 			//gEngine.ShowSQL(true)
 			gEngine.SetMaxIdleConns(2)            //设置连接池中的保持连接的最大连接数
 			gEngine.SetMaxOpenConns(4)            //设置连接池的打开的最大连接数
 			gEngine.SetConnMaxLifetime(time.Hour) //设置连接超时时间
-			//gEngine.AddHook()
+			gEngine.AddHook(xormhook.NewSQLLogHooker(
+				io.MultiWriter(&lumberjack.Logger{
+					Filename:  "sqldump/sqldump.log",
+					MaxSize:   500,
+					LocalTime: true,
+				})))
+			gEngine.EnableSessionID(true)
 		}
 	})
 	return gEngine
@@ -40,25 +49,25 @@ func Register(name string, persist core.IPersist) {
 }
 
 func Exit() (err error) {
-	log.Println("Save Begin")
+	log.Info("Save Begin")
 	core.ExitPersist()
-	log.Println("Save End")
-	log.Println("SyncData Begin")
+	log.Info("Save End")
+	log.Info("SyncData Begin")
 	err = core.SyncDataPersist(true)
 	if err != nil {
 		return
 	}
-	log.Println("SyncData End")
+	log.Info("SyncData End")
 	return
 }
 
 func Run() (err error) {
-	log.Println("Run Begin")
+	log.Info("Run Begin")
 	err = core.RunPersist()
 	if err != nil {
 		return
 	}
-	log.Println("Run End")
+	log.Info("Run End")
 	return nil
 }
 

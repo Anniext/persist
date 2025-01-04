@@ -1,6 +1,7 @@
-package main
+package test
 
 import (
+	"anniext.asia/xt/persist/core"
 	"anniext.asia/xt/persist/data"
 	"anniext.asia/xt/persist/protocol"
 	"anniext.asia/xt/utils/log"
@@ -25,23 +26,19 @@ func main() {
 		log.Panic(err.Error())
 	}
 	err = data.Run()
-	if err != nil {
-		log.Panic(err.Error())
 
-	}
-	data.GGoodsLocalManager.LoadAll()
+	core.SetLoadState2Memory(1)
 
-	data.GGoodsLocalManager.NewGoodsLocal(&protocol.GoodsLocal{
-		Uid:  1,
-		Time: 0,
-		Name: "sss",
+	data.GItemLocalManager.NewItemLocal(&protocol.ItemLocal{
+		Uid:      1,
+		ItemId:   2,
+		ItemNum:  3,
+		ItemTime: 4,
 	})
-	if err != nil {
-		log.Error(err)
+
+	a := data.GItemLocalManager.GetAll()
+	for _, i := range a {
+		log.Info(i.ItemId)
 	}
-
-	uid := data.GGoodsLocalManager.GetGoodsLocalByUid(1)
-
-	log.Info(uid.Name)
-	time.Sleep(time.Second * 10)
+	time.Sleep(3 * time.Second)
 }
