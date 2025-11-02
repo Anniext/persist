@@ -32,7 +32,7 @@ import (
 
 	"github.com/spelens-gud/persist/utils"
 
-	persistCore	"github.com/spelens-gud/persist/core"
+	persistCore "github.com/spelens-gud/persist/core"
 
 	"github.com/spelens-gud/persist/model"
 )
